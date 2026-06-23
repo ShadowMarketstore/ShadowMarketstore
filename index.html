@@ -17,23 +17,26 @@
         }
         .bg-netlify-cyan:hover {
             background-color: #008c81;
+        }
             
-            .spinner {
-    width: 20px;
-    height: 20px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
+        /* Zone Spinner corrigée et isolée */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -62,6 +65,8 @@
                 </button>
             </div>
 
+            <div id="statusZone" class="mt-4 text-center text-sm"></div>
+
             <div id="resultZone" class="mt-6 hidden p-4 rounded-lg border">
                 <p id="resultTitle" class="font-bold text-lg mb-1"></p>
                 <p id="resultMessage" class="text-sm text-gray-400 mb-4"></p>
@@ -77,91 +82,94 @@
         &copy; 2026 Shadow Market Store. Tous droits réservés.
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Ces configurations seront automatiquement lues depuis les variables d'environnement de Netlify ou à remplacer.
-        // Pour des raisons de sécurité sur un fichier unique, le script appelle directement les variables d'injection.
-        // 1. Connexion à ton projet Supabase
-const supabaseUrl = 'https://tckfcaqjvtijeykjhyhq.supabase.co';
-const supabaseKey = 'sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        // 1. Connexion au projet Supabase
+        const supabaseUrl = 'https://tckfcaqjvtijeykjhyhq.supabase.co';
+        const supabaseKey = 'sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-// 2. Fonction principale déclenchée quand le client clique sur "Valider"
-async function gererVerificationCode() {
-    // On récupère les éléments de la page
-    const codeSaisi = document.getElementById('input-code').value.trim();
-    const messageStatus = document.getElementById('message-status'); 
-    const boutonValider = document.getElementById('btn-valider'); // On récupère le bouton
+        // 2. Fonction principale de vérification
+        async function verifyCode() {
+            const codeSaisi = document.getElementById('keyCode').value.trim();
+            const statusZone = document.getElementById('statusZone'); 
+            const boutonValider = document.getElementById('btnVerify');
+            const resultZone = document.getElementById('resultZone');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const downloadBtn = document.getElementById('downloadBtn');
 
-    // Sécurité : si la case est vide
-    if (!codeSaisi) {
-        messageStatus.innerHTML = "<span style='color: orange;'>⚠️ Veuillez saisir un code.</span>";
-        return;
-    }
+            // Réinitialisation des zones
+            statusZone.innerHTML = "";
+            resultZone.classList.add('hidden');
 
-    // --- ÉTAPE 1 : L'ANIMATION DE CHARGEMENT & BLOCAGE ---
-    // On désactive le bouton pour éviter que l'utilisateur clique plusieurs fois
-    if (boutonValider) {
-        boutonValider.disabled = true;
-        boutonValider.innerText = "Recherche en cours...";
-    }
-    
-    // On ajoute un cercle de chargement CSS (la classe 'spinner') et le texte
-    messageStatus.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; color: #3498db;">
-            <div class="spinner"></div>
-            <span>Nous vérifions votre clé dans la base de données, veuillez patienter...</span>
-        </div>
-    `;
-
-    try {
-        // --- ÉTAPE 2 : LA RECHERCHE SUR SUPABASE ---
-        const { data, error } = await supabase
-            .from('codes_produits') 
-            .select('*')
-            .eq('code', codeSaisi)
-            .single();
-
-        // --- ÉTAPE 3 : LES MESSAGES DE RÉSULTAT ---
-        if (error || !data) {
-            // Code invalide : on réactive le bouton pour qu'il puisse réessayer
-            messageStatus.innerHTML = "<span style='color: #e74c3c;'>❌ Code invalide ou inexistant. Veuillez réessayer.</span>";
-            if (boutonValider) {
-                boutonValider.disabled = false;
-                boutonValider.innerText = "Vérifier et Télécharger";
+            if (!codeSaisi) {
+                statusZone.innerHTML = "<span class='text-orange-400'>⚠️ Veuillez saisir un code.</span>";
+                return;
             }
-            return;
-        }
 
-        // Si le code est valide !
-        messageStatus.innerHTML = "<span style='color: #2ecc71;'>✅ Code valide ! Préparation de votre téléchargement...</span>";
-        
-        // C'est ici qu'on affichera le produit ou le lien de téléchargement plus tard
-        if (boutonValider) {
-            boutonValider.innerText = "Validé !";
-        }
+            // ÉTAPE 1 : Activation de l'animation de chargement
+            boutonValider.disabled = true;
+            boutonValider.innerText = "Recherche en cours...";
+            
+            statusZone.innerHTML = `
+                <div class="flex items-center justify-center gap-2 text-sky-400 my-2">
+                    <div class="spinner"></div>
+                    <span>Vérification dans la base de données...</span>
+                </div>
+            `;
 
-    } catch (err) {
-        console.error(err);
-        messageStatus.innerHTML = "<span style='color: #e74c3c;'>❌ Une erreur est survenue lors de la connexion.</span>";
-        // En cas d'erreur technique, on réactive aussi le bouton
-        if (boutonValider) {
-            boutonValider.disabled = false;
-            boutonValider.innerText = "Vérifier et Télécharger";
-        }
-    }
-}
+            try {
+                // ÉTAPE 2 : Recherche dans la base Supabase
+                const { data, error } = await supabaseClient
+                    .from('codes_produits') 
+                    .select('*')
+                    .eq('code', codeSaisi)
+                    .single();
 
-        console.error("Erreur de connexion:", error);
-                resultZone.classList.add('bg-red-950', 'border-red-800');
-                resultTitle.innerText = "Erreur de Connexion Server";
+                // ÉTAPE 3 : Traitement des résultats
+                if (error || !data) {
+                    statusZone.innerHTML = "";
+                    resultZone.classList.remove('hidden');
+                    resultZone.className = "mt-6 p-4 rounded-lg border bg-red-950/50 border-red-800";
+                    resultTitle.innerText = "Code Invalide";
+                    resultTitle.className = "font-bold text-lg text-red-400 mb-1";
+                    resultMessage.innerText = "Ce code d'accès n'existe pas ou a expiré. Veuillez vérifier votre saisie.";
+                    downloadBtn.classList.add('hidden');
+                    return;
+                }
+
+                // Si le code est valide
+                statusZone.innerHTML = "";
+                resultZone.classList.remove('hidden');
+                resultZone.className = "mt-6 p-4 rounded-lg border bg-green-950/50 border-green-800";
+                resultTitle.innerText = "Code Valide !";
+                resultTitle.className = "font-bold text-lg text-green-400 mb-1";
+                resultMessage.innerText = `Produit trouvé : ${data.nom_produit || 'Votre extension numérique'}`;
+                
+                // On configure le bouton de téléchargement avec le lien de la BDD
+                downloadBtn.classList.remove('hidden');
+                downloadBtn.href = data.lien_telechargement || "#";
+                
+                boutonValider.innerText = "Validé !";
+
+            } catch (err) {
+                console.error("Erreur de connexion:", err);
+                statusZone.innerHTML = "";
+                resultZone.classList.remove('hidden');
+                resultZone.className = "mt-6 p-4 rounded-lg border bg-red-950/50 border-red-800";
+                resultTitle.innerText = "Erreur de Connexion";
                 resultTitle.className = "font-bold text-lg text-red-400 mb-1";
-                resultMessage.innerText = "Impossible de joindre Super BZ. Vérifiez votre connexion internet.";
+                resultMessage.innerText = "Impossible de joindre la base de données. Vérifiez votre connexion internet.";
                 downloadBtn.classList.add('hidden');
             } finally {
-                btn.disabled = false;
-                btn.innerText = "Vérifier et Télécharger";
+                if (boutonValider.innerText !== "Validé !") {
+                    boutonValider.disabled = false;
+                    boutonValider.innerText = "Vérifier et Télécharger";
+                }
             }
         }
     </script>
 </body>
 </html>
+
