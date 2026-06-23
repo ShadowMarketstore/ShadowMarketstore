@@ -120,11 +120,11 @@
             `;
 
             try {
-                // ÉTAPE 2 : Recherche dans la base Supabase
+                // ÉTAPE 2 : Recherche ciblée sur la table 'codes' et la colonne 'code_unique'
                 const { data, error } = await supabaseClient
-                    .from('codes_produits') 
+                    .from('codes') 
                     .select('*')
-                    .eq('code', codeSaisi)
+                    .eq('code_unique', codeSaisi)
                     .single();
 
                 // ÉTAPE 3 : Traitement des résultats
@@ -145,9 +145,9 @@
                 resultZone.className = "mt-6 p-4 rounded-lg border bg-green-950/50 border-green-800";
                 resultTitle.innerText = "Code Valide !";
                 resultTitle.className = "font-bold text-lg text-green-400 mb-1";
-                resultMessage.innerText = `Produit trouvé : ${data.nom_produit || 'Votre extension numérique'}`;
+                resultMessage.innerText = `Produit lié trouvé (ID: ${data.produit_id || 'N/A'}).`;
                 
-                // On configure le bouton de téléchargement avec le lien de la BDD
+                // On configure le bouton de téléchargement (cherche la colonne de ton lien ou met un '#' par défaut)
                 downloadBtn.classList.remove('hidden');
                 downloadBtn.href = data.lien_telechargement || "#";
                 
@@ -172,4 +172,3 @@
     </script>
 </body>
 </html>
-
