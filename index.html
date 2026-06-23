@@ -63,8 +63,8 @@
     <script>
         // Ces configurations seront automatiquement lues depuis les variables d'environnement de Netlify ou à remplacer.
         // Pour des raisons de sécurité sur un fichier unique, le script appelle directement les variables d'injection.
-        const SUPABASE_URL = window.env?.SUPABASE_URL || "___REMPLACE_PAR_TON_URL_SUPABASE___";
-        const SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || "___REMPLACE_PAR_TA_CLE_ANON_SUPABASE___";
+        const SUPABASE_URL = window.env?.SUPABASE_URL || "https://tckfcaqjvtijeykjhyhq.supabase.co";
+        const SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh";
 
         async function verifyCode() {
             const codeInput = document.getElementById('keyCode').value.trim().toUpperCase();
