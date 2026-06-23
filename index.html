@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Market Store — Vérification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0e1118; /* Noir profond style Netlify */
+        }
+        .netlify-cyan {
+            color: #00ad9f; /* Le Cyan officiel de Netlify */
+        }
+        .bg-netlify-cyan {
+            background-color: #00ad9f;
+        }
+        .bg-netlify-cyan:hover {
+            background-color: #008c81;
+        }
+    </style>
+</head>
+<body class="text-white font-sans min-h-screen flex flex-col justify-between">
+
+    <header class="border-b border-gray-800 bg-[#141923] px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold tracking-wide">SHADOW <span class="netlify-cyan">MARKET STORE</span></h1>
+        <span class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full border border-gray-700"> v2.0 - Supabase Connected</span>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-[#141923] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h2 class="text-2xl font-bold mb-2 text-center">Vérification de votre clé</h2>
+            <p class="text-gray-400 text-sm text-center mb-6">Entrez le code reçu lors de votre achat pour récupérer votre produit.</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label for="keyCode" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Code d'accès</label>
+                    <input type="text" id="keyCode" placeholder="Ex: SHD079e1IP" 
+                           class="w-full bg-[#0e1118] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#00ad9f] transition-colors">
+                </div>
+
+                <button id="btnVerify" onclick="verifyCode()" 
+                        class="w-full bg-netlify-cyan text-black font-bold py-3 px-4 rounded-lg transition-colors duration-200">
+                    Vérifier et Télécharger
+                </button>
+            </div>
+
+            <div id="resultZone" class="mt-6 hidden p-4 rounded-lg border">
+                <p id="resultTitle" class="font-bold text-lg mb-1"></p>
+                <p id="resultMessage" class="text-sm text-gray-400 mb-4"></p>
+                <a id="downloadBtn" href="#" target="_blank" 
+                   class="inline-flex items-center justify-center w-full bg-white text-black font-bold py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
+                    Télécharger le produit
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-gray-800 bg-[#0e1118] text-center py-4 text-xs text-gray-500">
+        &copy; 2026 Shadow Market Store. Tous droits réservés.
+    </footer>
+
+    <script>
+        // Ces configurations seront automatiquement lues depuis les variables d'environnement de Netlify ou à remplacer.
+        // Pour des raisons de sécurité sur un fichier unique, le script appelle directement les variables d'injection.
+        const SUPABASE_URL = window.env?.SUPABASE_URL || "___REMPLACE_PAR_TON_URL_SUPABASE___";
+        const SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || "___REMPLACE_PAR_TA_CLE_ANON_SUPABASE___";
+
+        async function verifyCode() {
+            const codeInput = document.getElementById('keyCode').value.trim().toUpperCase();
+            const btn = document.getElementById('btnVerify');
+            const resultZone = document.getElementById('resultZone');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultMessage = document.getElementById('resultMessage');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            if (!codeInput) {
+                alert("Veuillez entrer un code valide.");
+                return;
+            }
+
+            // Animation de chargement
+            btn.disabled = true;
+            btn.innerText = "Recherche dans la base...";
+
+            try {
+                // Requête directe sur la table "codes" de ton Super BZ (Supabase)
+                // Remplace 'codes' par le nom exact de ta table si elle s'appelle autrement (ex: 'products_keys')
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/codes?code=eq.${codeInput}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                resultZone.classList.remove('hidden', 'bg-red-950', 'border-red-800', 'bg-emerald-950', 'border-emerald-800');
+
+                if (data && data.length > 0) {
+                    // Le code existe ! On prend la première correspondance
+                    const activeProduct = data[0];
+                    
+                    resultZone.classList.add('bg-emerald-950', 'border-emerald-800');
+                    resultTitle.innerText = "Code Valide !";
+                    resultTitle.className = "font-bold text-lg text-emerald-400 mb-1";
+                    resultMessage.innerText = `Produit trouvé : ${activeProduct.productName || "Optimisation Shadow"}`;
+                    
+                    // On injecte le lien de téléchargement (qui peut être ton ancien lien pour l'instant)
+                    downloadBtn.href = activeProduct.downloadUrl || "#";
+                    downloadBtn.classList.remove('hidden');
+                } else {
+                    // Code introuvable
+                    resultZone.classList.add('bg-red-950', 'border-red-800');
+                    resultTitle.innerText = "Code Invalide ou Inexistant";
+                    resultTitle.className = "font-bold text-lg text-red-400 mb-1";
+                    resultMessage.innerText = "Vérifiez les majuscules/minuscules et les espaces, ou contactez le support.";
+                    downloadBtn.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error("Erreur de connexion:", error);
+                resultZone.classList.add('bg-red-950', 'border-red-800');
+                resultTitle.innerText = "Erreur de Connexion Server";
+                resultTitle.className = "font-bold text-lg text-red-400 mb-1";
+                resultMessage.innerText = "Impossible de joindre Super BZ. Vérifiez votre connexion internet.";
+                downloadBtn.classList.add('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Vérifier et Télécharger";
+            }
+        }
+    </script>
+</body>
+</html>
