@@ -86,7 +86,7 @@
             try {
                 // Requête directe sur la table "codes" de ton Super BZ (Supabase)
                 // Remplace 'codes' par le nom exact de ta table si elle s'appelle autrement (ex: 'products_keys')
-                const response = await fetch(`${SUPABASE_URL(/rest/v1/codes?code_unique=eq.${codeInput}`, {
+                const response = await fetch(`${SUPABASE_URL/rest/v1/codes?code_unique=eq.${codeInput}`, {
                     method: 'GET',
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
