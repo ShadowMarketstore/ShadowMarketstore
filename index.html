@@ -19,7 +19,7 @@
             background: #0d0d0d;
             padding: 40px;
             border-radius: 20px;
-            /* Bordure Néon principale */
+            /* Bordure Néon */
             border: 2px solid #00ffeb;
             box-shadow: 0 0 20px rgba(0, 255, 235, 0.4);
             width: 320px;
@@ -45,7 +45,6 @@
             width: 100%;
             padding: 18px;
             background: #050505;
-            /* Néon sur la zone de saisie */
             border: 1px solid #00ffeb;
             box-shadow: 0 0 5px rgba(0, 255, 235, 0.3);
             color: #ffffff;
@@ -117,7 +116,8 @@
                 if (data.length > 0 && data[0].lien) {
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
-                    msg.innerHTML = `CODE VALIDE !<br><br>Nous on s'emmerde en fait avec les putes de stars.<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
+                    // MESSAGE PROFESSIONNEL CORRIGÉ
+                    msg.innerHTML = `CODE VALIDE !<br><br>Merci de nous avoir fait confiance. Vous ne le regretterez pas !<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
                 } else {
                     msg.style.color = "#ff4d4d";
                     msg.style.borderColor = "#ff4d4d";
