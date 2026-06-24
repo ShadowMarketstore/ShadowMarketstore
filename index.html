@@ -19,9 +19,9 @@
             background: #0d0d0d;
             padding: 40px;
             border-radius: 20px;
-            /* Bordure Néon pour la délimitation */
-            border: 1px solid #00ffeb;
-            box-shadow: 0 0 15px #00ffeb, inset 0 0 10px rgba(0, 255, 235, 0.2);
+            /* Bordure Néon principale */
+            border: 2px solid #00ffeb;
+            box-shadow: 0 0 20px rgba(0, 255, 235, 0.4);
             width: 320px;
             text-align: center;
         }
@@ -30,16 +30,24 @@
             color: #00ffeb; 
             text-transform: uppercase; 
             letter-spacing: 2px; 
-            margin-bottom: 30px; 
+            margin-bottom: 10px; 
             font-size: 22px;
             text-shadow: 0 0 10px #00ffeb;
+        }
+
+        .instruction {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 25px;
         }
 
         input {
             width: 100%;
             padding: 18px;
             background: #050505;
-            border: 1px solid #333;
+            /* Néon sur la zone de saisie */
+            border: 1px solid #00ffeb;
+            box-shadow: 0 0 5px rgba(0, 255, 235, 0.3);
             color: #ffffff;
             border-radius: 12px;
             margin-bottom: 20px;
@@ -59,7 +67,10 @@
             text-transform: uppercase;
             cursor: pointer;
             box-shadow: 0 0 10px #00ffeb;
+            transition: 0.3s;
         }
+
+        button:hover { box-shadow: 0 0 20px #00ffeb; }
 
         #msg { 
             margin-top: 20px; 
@@ -76,6 +87,7 @@
 
     <div class="container">
         <h2>SHADOW MARKET STORE</h2>
+        <p class="instruction">Veuillez entrer le code exact que vous avez reçu lors de votre achat.</p>
         <input type="text" id="code-input" placeholder="MET LE CODE ICI">
         <button id="btn" onclick="valider()">VALIDER LE CODE</button>
         <div id="msg"></div>
@@ -105,7 +117,7 @@
                 if (data.length > 0 && data[0].lien) {
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
-                    msg.innerHTML = `CODE VALIDE !<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
+                    msg.innerHTML = `CODE VALIDE !<br><br>Nous on s'emmerde en fait avec les putes de stars.<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
                 } else {
                     msg.style.color = "#ff4d4d";
                     msg.style.borderColor = "#ff4d4d";
