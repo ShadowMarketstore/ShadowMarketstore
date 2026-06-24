@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW MARKET</title>
+    <title>SHADOW MARKET STORE</title>
     <style>
-        /* Fond noir pur et design épuré */
         body {
             margin: 0;
             background-color: #000000;
@@ -20,18 +19,20 @@
             background: #0d0d0d;
             padding: 40px;
             border-radius: 20px;
-            border: 2px solid #1a1a1a;
+            /* Bordure Néon pour la délimitation */
+            border: 1px solid #00ffeb;
+            box-shadow: 0 0 15px #00ffeb, inset 0 0 10px rgba(0, 255, 235, 0.2);
             width: 320px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
         }
 
         h2 { 
-            color: #00ffeb; /* Vert électrique plus vif */
+            color: #00ffeb; 
             text-transform: uppercase; 
-            letter-spacing: 3px; 
+            letter-spacing: 2px; 
             margin-bottom: 30px; 
-            font-size: 26px;
+            font-size: 22px;
+            text-shadow: 0 0 10px #00ffeb;
         }
 
         input {
@@ -50,39 +51,37 @@
         button {
             width: 100%;
             padding: 18px;
-            background: #00ffeb; /* Vert électrique plus vif */
+            background: #00ffeb;
             border: none;
             border-radius: 12px;
             color: #000000;
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
-            transition: 0.3s;
+            box-shadow: 0 0 10px #00ffeb;
         }
 
-        button:hover { background: #00d4c4; }
-
         #msg { 
-            margin-top: 25px; 
+            margin-top: 20px; 
             padding: 15px; 
             border-radius: 10px; 
             display: none; 
             font-weight: 600;
             font-size: 14px;
+            border: 1px solid currentColor;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>SHADOW MARKET</h2>
+        <h2>SHADOW MARKET STORE</h2>
         <input type="text" id="code-input" placeholder="MET LE CODE ICI">
         <button id="btn" onclick="valider()">VALIDER LE CODE</button>
         <div id="msg"></div>
     </div>
 
     <script>
-        // --- LOGIQUE TECHNIQUE INTACTE ---
         const SUPA_URL = "https://tckfcaqjvtijeykjhyhq.supabase.co";
         const SUPA_KEY = "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh";
 
@@ -102,20 +101,19 @@
                 });
                 const data = await res.json();
 
+                msg.style.display = "block";
                 if (data.length > 0 && data[0].lien) {
-                    msg.style.display = "block";
-                    msg.style.background = "#00ffeb";
-                    msg.style.color = "#000";
-                    msg.innerHTML = `CODE VALIDE !<br><br><a href="${data[0].lien}" style="color:black; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
+                    msg.style.color = "#00ffeb";
+                    msg.style.borderColor = "#00ffeb";
+                    msg.innerHTML = `CODE VALIDE !<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
                 } else {
-                    msg.style.display = "block";
-                    msg.style.background = "#2a0000";
                     msg.style.color = "#ff4d4d";
-                    msg.innerHTML = "CODE INVALIDE.";
+                    msg.style.borderColor = "#ff4d4d";
+                    msg.innerHTML = "CODE INVALIDE OU NON TROUVÉ.";
                 }
             } catch (e) {
                 msg.style.display = "block";
-                msg.style.background = "#2a0000";
+                msg.style.color = "#ff4d4d";
                 msg.innerHTML = "ERREUR DE CONNEXION.";
             }
             btn.disabled = false;
