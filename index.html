@@ -54,7 +54,7 @@
             SHADOW <span class="netlify-cyan">MARKET STORE</span>
         </h1>
         <span class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full border border-gray-700">
-            v3.0 · Relational Fixed
+            v3.1 · Anti-Refresh Fixed
         </span>
     </header>
 
@@ -104,8 +104,7 @@
                 <p id="resultMessage" class="text-sm text-gray-400 mb-4"></p>
                 <a id="downloadBtn"
                    href="#"
-                   target="_blank"
-                   rel="noopener noreferrer"
+                   onclick="executerTelechargement(event)"
                    class="hidden inline-flex items-center justify-center w-full bg-white text-black font-bold py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
                     ⬇ Télécharger le produit
                 </a>
@@ -138,6 +137,8 @@
         const resultTitle = document.getElementById('resultTitle');
         const resultMsg   = document.getElementById('resultMessage');
         const downloadBtn = document.getElementById('downloadBtn');
+
+        let urlTelechargementActive = '#';
 
         /* ── HELPERS UI ────────────────────────────────────────── */
         keyInput.addEventListener('input', () => {
@@ -186,15 +187,31 @@
                 resultTitle.textContent  = titre;
                 resultTitle.className    = 'font-bold text-lg text-green-400 mb-1';
                 resultMsg.textContent    = message;
-                downloadBtn.href         = url || '#';
+                
+                // Stockage sécurisé de l'URL dans notre variable globale
+                urlTelechargementActive = url || '#';
                 downloadBtn.classList.remove('hidden');
             } else {
                 resultZone.className = 'mt-6 p-4 rounded-lg border bg-red-950/50 border-red-800 transition-all duration-300';
                 resultTitle.textContent  = titre;
                 resultTitle.className    = 'font-bold text-lg text-red-400 mb-1';
                 resultMsg.textContent    = message;
+                urlTelechargementActive = '#';
                 downloadBtn.classList.add('hidden');
             }
+        }
+
+        /* ── ACTION DE TÉLÉCHARGEMENT SÉCURISÉE ────────────────── */
+        function executerTelechargement(event) {
+            event.preventDefault(); // Bloque STRICTEMENT le rechargement de la page actuelle
+            
+            if (!urlTelechargementActive || urlTelechargementActive === '#') {
+                alert("Erreur : Aucun lien de téléchargement valide n'est configuré pour ce produit.");
+                return;
+            }
+            
+            // Ouvre proprement le lien dans un nouvel onglet de manière sécurisée
+            window.open(urlTelechargementActive, '_blank', 'noopener,noreferrer');
         }
 
         /* ── INTERCEPTION DU FORMULAIRE ───────────────────────── */
@@ -228,10 +245,6 @@
             setLoading(true);
 
             try {
-                /* MODIFICATION COMPLÈTE ET SÉCURISÉE :
-                   On demande les infos de 'codes' ET on va chercher le 'lien_telechargement' 
-                   depuis la table reliée 'produits' (grâce à produit_id).
-                */
                 const { data, error } = await db
                     .from('codes')
                     .select(`
@@ -267,7 +280,6 @@
                     return;
                 }
 
-                // Récupération des données imbriquées de la table produits
                 const produitConcerne = data.produits;
                 const lienFinal = produitConcerne ? produitConcerne.lien_telechargement : null;
 
@@ -277,7 +289,7 @@
                     succes:  true,
                     titre:   '✓ Code validé !',
                     message: 'Votre pack d\'optimisation est prêt.',
-                    url:     lienFinal || '#',
+                    url:     lienFinal,
                 });
                 resetBtn('✓ Validé');
                 btnVerify.disabled = true;
