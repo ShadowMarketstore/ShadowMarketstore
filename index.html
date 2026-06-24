@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW MARKET STORE — Vérification</title>
+    <title>SHADOW MARKET STORE — Netlify Tech</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --container-bg: #161b22;
-            --accent-color: #008f72; /* Couleur émeraude d'origine v3.0 */
-            --accent-hover: #00755d;
+            --bg-color: #0e1e25; /* Le bleu-noir très profond typique de Netlify */
+            --container-bg: #172a35; /* Le fond de conteneur légèrement plus clair */
+            --accent-color: #00ad9f; /* Le cyan/turquoise signature de Netlify */
+            --accent-hover: #00c7b7; /* Cyan brillant au survol */
             --text-color: #ffffff;
-            --text-muted: #8b949e;
-            --border-color: #21262d;
-            --input-bg: #0d1117;
-            --success-bg: rgba(0, 143, 114, 0.05);
-            --success-border: #008f72;
+            --text-muted: #849ca6;
+            --border-color: #243f4d;
+            --input-bg: #0e1e25;
+            --success-color: #21a283;
         }
 
         * {
@@ -25,7 +24,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
@@ -36,20 +35,20 @@
         }
 
         .container {
-            background-color: #12161f;
+            background-color: var(--container-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 10px;
             max-width: 450px;
             width: 100%;
             padding: 35px 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
         }
 
         .header-brand {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
         }
 
         .brand-title {
@@ -60,23 +59,24 @@
         }
 
         .brand-title span {
-            color: #00b492;
+            color: var(--accent-color);
         }
 
         .version-badge {
-            background-color: #1f242c;
-            color: var(--text-muted);
-            padding: 6px 12px;
+            background-color: rgba(0, 173, 159, 0.1);
+            color: var(--accent-hover);
+            font-weight: 600;
+            padding: 5px 12px;
             border-radius: 20px;
             font-size: 11px;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--accent-color);
         }
 
         h1 {
             font-size: 24px;
             font-weight: 700;
-            text-align: center;
             margin-bottom: 10px;
+            text-align: center;
         }
 
         .subtitle {
@@ -88,7 +88,7 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         label {
@@ -108,54 +108,81 @@
             color: var(--text-color);
             padding: 14px 16px;
             font-size: 16px;
-            border-radius: 8px;
+            border-radius: 6px;
             font-family: monospace;
-            letter-spacing: 1px;
             outline: none;
             transition: border-color 0.2s;
         }
 
         .input-field:focus {
-            border-color: #00b492;
+            border-color: var(--accent-hover);
+            box-shadow: 0 0 0 2px rgba(0, 199, 183, 0.2);
         }
 
         .btn-submit {
             width: 100%;
             background-color: var(--accent-color);
-            color: white;
+            color: #ffffff;
             border: none;
             padding: 14px;
             font-size: 16px;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 12px;
         }
 
         .btn-submit:hover {
             background-color: var(--accent-hover);
         }
 
+        .btn-submit:active {
+            transform: scale(0.99);
+        }
+
         .btn-submit:disabled {
-            background-color: #1f242c;
+            background-color: #243f4d;
             color: var(--text-muted);
             cursor: not-allowed;
         }
 
+        /* --- LE SPINNER CYAN --- */
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- BLOC VALIDATION --- */
         .success-box {
             display: none;
-            background-color: var(--success-bg);
-            border: 1px solid var(--success-border);
-            border-radius: 8px;
+            background-color: rgba(33, 162, 131, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 6px;
             padding: 20px;
             margin-top: 25px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .success-title {
-            color: #00b492;
+            color: #2ea78b;
             font-weight: 700;
             font-size: 16px;
             margin-bottom: 6px;
@@ -163,25 +190,25 @@
 
         .success-text {
             font-size: 13px;
-            color: #c9d1d9;
+            color: #d1dfe4;
             margin-bottom: 15px;
         }
 
         .btn-white-download {
             width: 100%;
             background-color: #ffffff;
-            color: #0d1117;
+            color: #0e1e25;
             border: none;
             padding: 12px;
             font-size: 14px;
             font-weight: 700;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            text-align: center;
+            transition: background-color 0.2s;
         }
 
         .btn-white-download:hover {
-            background-color: #f6f8fa;
+            background-color: #f0f4f6;
         }
     </style>
 </head>
@@ -190,7 +217,7 @@
     <div class="container">
         <div class="header-brand">
             <div class="brand-title">SHADOW <span>MARKET</span><br>STORE</div>
-            <div class="version-badge">v3.0 • Relational Fixed</div>
+            <div class="version-badge">v3.0 • Fixed</div>
         </div>
 
         <h1>Vérification de votre clé</h1>
@@ -201,7 +228,10 @@
             <input type="text" id="shdw-input-code" class="input-field" placeholder="SHD036e5IP" autocomplete="off">
         </div>
 
-        <button id="shdw-btn-valider" class="btn-submit" onclick="verifierCle()">✓ Validé</button>
+        <button id="shdw-btn-valider" class="btn-submit" onclick="verifierCle()">
+            <span class="spinner" id="shdw-spinner"></span>
+            <span id="shdw-btn-text">Validé</span>
+        </button>
 
         <div id="shdw-success-block" class="success-box">
             <div class="success-title">✓ Code validé !</div>
@@ -211,13 +241,15 @@
     </div>
 
     <script>
-        // === METS TES VRAIES CLÉS ICI POUR ÉVITER LA PAGE D'ERREUR ===
+        // Reste plus qu'à remplacer ça quand tu relances ta bdd !
         const SUPABASE_URL = "https://votre-projet.supabase.co"; 
         const SUPABASE_ANON_KEY = "votre-cle-anon-ici"; 
 
         async function verifierCle() {
             const inputCode = document.getElementById('shdw-input-code').value.trim();
             const btnValider = document.getElementById('shdw-btn-valider');
+            const btnText = document.getElementById('shdw-btn-text');
+            const spinner = document.getElementById('shdw-spinner');
             const successBlock = document.getElementById('shdw-success-block');
             const btnDownload = document.getElementById('shdw-btn-download');
             
@@ -227,8 +259,8 @@
             }
 
             btnValider.disabled = true;
-            const texteOriginalValider = btnValider.innerText;
-            btnValider.innerText = "⏳ Vérification...";
+            spinner.style.display = "block";
+            btnText.innerText = "Vérification...";
 
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(inputCode)}&select=*,produits(lien_telechargement)`, {
@@ -239,14 +271,13 @@
                     }
                 });
 
-                if (!response.ok) throw new Error("Erreur de connexion Supabase");
+                if (!response.ok) throw new Error("Erreur réseau");
 
                 const data = await response.json();
 
                 if (!data || data.length === 0) {
                     alert("❌ Code invalide. Veuillez vérifier votre saisie.");
-                    btnValider.disabled = false;
-                    btnValider.innerText = texteOriginalValider;
+                    resetBouton();
                     return;
                 }
 
@@ -254,22 +285,21 @@
                 const urlTelechargement = donnesCode.produits?.lien_telechargement;
 
                 if (!urlTelechargement) {
-                    alert("⚠️ Ce produit n'a pas de lien de téléchargement configuré dans la base.");
-                    btnValider.disabled = false;
-                    btnValider.innerText = texteOriginalValider;
+                    alert("⚠️ Ce produit n'a pas de lien de téléchargement configuré.");
+                    resetBouton();
                     return;
                 }
 
-                // Succès visuel identique à ton image
-                btnValider.innerHTML = "✓ Validé";
-                btnValider.style.backgroundColor = "#008f72"; 
+                // Succès net
+                spinner.style.display = "none";
+                btnText.innerText = "✓ Validé";
                 successBlock.style.display = "block";
 
                 btnDownload.onclick = function() {
                     declencherTelechargementSecurise(urlTelechargement, btnDownload);
                 };
 
-                // Système iframe furtif (ne bloque pas et lance le flux)
+                // Lancement auto par iframe
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
                 iframe.src = urlTelechargement;
@@ -281,9 +311,14 @@
 
             } catch (error) {
                 console.error(error);
-                alert("Une erreur est survenue lors de la connexion. Vérifie bien tes clés Supabase aux lignes 123 et 124.");
+                alert("Erreur de connexion. Vérifie bien tes clés Supabase aux lignes 151 et 152.");
+                resetBouton();
+            }
+
+            function resetBouton() {
                 btnValider.disabled = false;
-                btnValider.innerText = "✓ Validé";
+                spinner.style.display = "none";
+                btnText.innerText = "Validé";
             }
         }
 
@@ -304,10 +339,9 @@
                 setTimeout(() => {
                     boutonElement.innerHTML = texteOriginal;
                     boutonElement.disabled = false;
-                }, 5000);
+                }, 4000);
             }, 1000);
         }
     </script>
 </body>
 </html>
-
