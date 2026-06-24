@@ -10,8 +10,8 @@
         .container { background-color: var(--container-bg); width: 100%; max-width: 500px; padding: 50px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center; }
         .brand-title { font-size: 28px; font-weight: 900; text-transform: uppercase; margin-bottom: 40px; }
         .brand-title span { color: var(--accent-color); }
-        .input-field { width: 100%; padding: 20px; background: #0e1e25; border: 2px solid var(--border-color); color: white; border-radius: 10px; box-sizing: border-box; margin-bottom: 20px; }
-        .btn-main { width: 100%; padding: 20px; background: var(--accent-color); border: none; border-radius: 10px; color: white; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        .input-field { width: 100%; padding: 20px; background: #0e1e25; border: 2px solid var(--border-color); color: white; border-radius: 10px; box-sizing: border-box; margin-bottom: 20px; font-size: 16px; }
+        .btn-main { width: 100%; padding: 20px; background: var(--accent-color); border: none; border-radius: 10px; color: white; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 16px; }
         #message-container { margin-top: 30px; }
         .box-feedback { padding: 20px; border-radius: 10px; display: none; margin-bottom: 10px; }
         .error-box { border: 1px solid var(--error-color); color: var(--error-color); background: rgba(255, 77, 77, 0.05); }
@@ -27,7 +27,7 @@
             <div id="error-box" class="box-feedback error-box"></div>
             <div id="success-box" class="box-feedback success-box">
                 <p>✓ Code valide !</p>
-                <button id="btn-download" class="btn-main" style="background: var(--success-color);">Télécharger</button>
+                <button id="btn-download" class="btn-main" style="background: var(--success-color); margin-top: 15px;">Télécharger le produit</button>
             </div>
         </div>
     </div>
@@ -47,27 +47,32 @@
             errorBox.style.display = "none";
             successBox.style.display = "none";
             btn.disabled = true;
+            btn.innerText = "Vérification...";
 
             try {
-                // CORRECTION ICI : select=*,produits(lien_telechargement)
-                // Cela force Supabase à aller chercher le lien dans la table liée
-                const query = `${CONFIG.url}/rest/v1/codes?code_unique=eq.${encodeURIComponent(inputVal)}&select=*,produits(lien_telechargement)`;
-                
-                const response = await fetch(query, {
+                // Étape 1 : Récupérer le code pour trouver le produit_id
+                const resCode = await fetch(`${CONFIG.url}/rest/v1/codes?code_unique=eq.${encodeURIComponent(inputVal)}`, {
                     headers: { 'apikey': CONFIG.apiKey, 'Authorization': `Bearer ${CONFIG.apiKey}`, 'Content-Type': 'application/json' }
                 });
+                const dataCode = await resCode.json();
 
-                const data = await response.json();
+                if (dataCode.length > 0) {
+                    const prodId = dataCode[0].produit_id;
+                    
+                    // Étape 2 : Récupérer le lien du produit via son ID
+                    const resProd = await fetch(`${CONFIG.url}/rest/v1/produits?id=eq.${prodId}`, {
+                        headers: { 'apikey': CONFIG.apiKey, 'Authorization': `Bearer ${CONFIG.apiKey}`, 'Content-Type': 'application/json' }
+                    });
+                    const dataProd = await resProd.json();
 
-                if (response.ok && data.length > 0) {
-                    if (data[0].produits && data[0].produits.lien_telechargement) {
+                    if (dataProd.length > 0 && dataProd[0].lien_telechargement) {
                         successBox.style.display = "block";
                         btn.style.display = "none";
                         document.getElementById('btn-download').onclick = () => {
-                            window.location.href = data[0].produits.lien_telechargement;
+                            window.location.href = dataProd[0].lien_telechargement;
                         };
                     } else {
-                        errorBox.innerText = "Code trouvé, mais impossible de récupérer le lien.";
+                        errorBox.innerText = "Code trouvé, mais impossible de lier le produit.";
                         errorBox.style.display = "block";
                     }
                 } else {
@@ -75,12 +80,12 @@
                     errorBox.style.display = "block";
                 }
             } catch (err) {
-                errorBox.innerText = "Erreur de connexion.";
+                errorBox.innerText = "Erreur de connexion serveur.";
                 errorBox.style.display = "block";
             }
             btn.disabled = false;
+            btn.innerText = "Valider le code";
         }
     </script>
 </body>
 </html>
-
