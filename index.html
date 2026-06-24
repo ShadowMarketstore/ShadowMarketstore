@@ -54,7 +54,7 @@
             SHADOW <span class="netlify-cyan">MARKET STORE</span>
         </h1>
         <span class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full border border-gray-700">
-            v2.1 · Supabase Connected
+            v2.2 · Supabase Stabilized
         </span>
     </header>
 
@@ -217,7 +217,6 @@
                 return;
             }
 
-            // Correction Regex pour accepter minuscules et majuscules comme dans ton code de base
             if (!/^[a-zA-Z0-9\-]+$/.test(code)) {
                 statusZone.innerHTML = "<span class='text-orange-400'>⚠ Code contient des caractères non valides.</span>";
                 keyInput.focus();
@@ -234,15 +233,14 @@
                 const controller = new AbortController();
                 const timeoutId  = setTimeout(() => controller.abort(), 8000);
 
-                /* MODIFICATION ICI : 
-                   - Table : 'codes' (au lieu de 'codes_produits')
-                   - Colonnes sélectionnées : 'code_unique, lien_telechargement'
-                   - Filtre .ilike basé sur 'code_unique'
+                /* CORRECTION SÉCURISÉE :
+                   Remplacement du .ilike() par .eq() pour éviter le plantage SQL 
+                   et correspondre exactement au format de ta table 'codes'.
                 */
                 const { data, error } = await db
                     .from('codes')
                     .select('code_unique, lien_telechargement, produit_id')
-                    .ilike('code_unique', code)
+                    .eq('code_unique', code)
                     .maybeSingle();
 
                 clearTimeout(timeoutId);
@@ -269,7 +267,7 @@
                     return;
                 }
 
-                // ✅ Code valide avec tes anciennes variables
+                // ✅ Code valide
                 keyInput.classList.remove('border-red-600');
                 afficherResultat({
                     succes:  true,
@@ -296,4 +294,3 @@
     </script>
 </body>
 </html>
-
