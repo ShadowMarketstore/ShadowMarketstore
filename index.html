@@ -5,112 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHADOW MARKET STORE - 5 Star Edition</title>
     <style>
-        /* Variables de Design Système */
         :root { 
-            --bg-color: #0e1e25; 
-            --container-bg: #172a35; 
-            --accent-color: #00ad9f; 
-            --success-color: #21a283; 
-            --error-color: #ff4d4d; 
-            --text-color: #ffffff; 
-            --text-muted: #849ca6; 
-            --border-color: #243f4d;
+            --bg-color: #0e1e25; --container-bg: #172a35; --accent-color: #00ad9f; 
+            --success-color: #21a283; --error-color: #ff4d4d; --text-color: #ffffff; 
+            --text-muted: #849ca6; --border-color: #243f4d;
         }
-
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: var(--bg-color); 
-            color: var(--text-color); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px; 
-        }
-
-        .container { 
-            background-color: var(--container-bg); 
-            width: 100%; 
-            max-width: 450px; 
-            padding: 40px; 
-            border-radius: 12px; 
-            border: 1px solid var(--border-color); 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-
-        .brand-header { margin-bottom: 30px; }
-        .brand-title { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .container { background-color: var(--container-bg); width: 100%; max-width: 450px; padding: 40px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .brand-title { font-size: 24px; font-weight: 800; text-transform: uppercase; margin-bottom: 30px; }
         .brand-title span { color: var(--accent-color); }
-        
-        h1 { font-size: 18px; margin-bottom: 10px; color: var(--text-color); }
-        .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
-
-        .input-group { margin-bottom: 20px; }
-        .input-field { 
-            width: 100%; 
-            padding: 16px; 
-            background: #0e1e25; 
-            border: 1px solid var(--border-color); 
-            color: white; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        .input-field:focus { border-color: var(--accent-color); outline: none; }
-
-        .btn-main { 
-            width: 100%; 
-            padding: 16px; 
-            background: var(--accent-color); 
-            border: none; 
-            border-radius: 8px; 
-            color: white; 
-            font-weight: 700; 
-            cursor: pointer; 
-            font-size: 16px;
-            transition: opacity 0.3s;
-        }
-        .btn-main:hover { opacity: 0.9; }
-
-        /* Zones de feedback utilisateur */
+        h1 { font-size: 18px; margin-bottom: 10px; }
+        .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; }
+        .input-field { width: 100%; padding: 16px; background: #0e1e25; border: 1px solid var(--border-color); color: white; border-radius: 8px; box-sizing: border-box; margin-bottom: 20px; }
+        .btn-main { width: 100%; padding: 16px; background: var(--accent-color); border: none; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; }
         #message-container { margin-top: 25px; }
         .box-feedback { padding: 20px; border-radius: 8px; text-align: center; display: none; }
         .error-box { border: 1px solid var(--error-color); color: var(--error-color); background: rgba(255, 77, 77, 0.1); }
         .success-box { border: 1px solid var(--success-color); color: var(--success-color); background: rgba(33, 162, 131, 0.1); }
-        
         .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <header class="brand-header">
-            <div class="brand-title">SHADOW <span>MARKET</span> STORE</div>
-        </header>
-
+        <div class="brand-title">SHADOW <span>MARKET</span> STORE</div>
         <h1>Vérification de votre clé</h1>
-        <p class="subtitle">Entrez le code exact reçu lors de votre achat pour déverrouiller votre accès au produit.</p>
-        
-        <div class="input-group">
-            <input type="text" id="code-input" class="input-field" placeholder="Ex: SHD-XXXXX">
-        </div>
-        
+        <p class="subtitle">Entrez le code exact pour déverrouiller votre accès.</p>
+        <input type="text" id="code-input" class="input-field" placeholder="Ex: SHD-XXXXX">
         <button id="btn-valider" class="btn-main" onclick="processValidation()">Valider le code</button>
-
         <div id="message-container">
-            <div id="error-box" class="box-feedback error-box">Code invalide ou expiré. Veuillez vérifier votre saisie.</div>
+            <div id="error-box" class="box-feedback error-box">Code invalide ou expiré.</div>
             <div id="success-box" class="box-feedback success-box">
-                <p style="font-weight: bold; margin-bottom: 10px;">✓ Accès autorisé !</p>
-                <button id="btn-download" class="btn-main">Télécharger le produit</button>
+                <p>✓ Accès autorisé !</p>
+                <button id="btn-download" class="btn-main">Télécharger</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration sécurisée
         const CONFIG = {
             url: "https://tckfcaqjvtijeykjhyhq.supabase.co",
             apiKey: "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh"
@@ -122,47 +54,33 @@
             const errorBox = document.getElementById('error-box');
             const successBox = document.getElementById('success-box');
             
-            // Réinitialisation de l'affichage
             errorBox.style.display = "none";
             successBox.style.display = "none";
-            
-            if(!inputVal) {
-                alert("Veuillez saisir un code.");
-                return;
-            }
-
-            // Animation de chargement
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> Vérification...';
 
             try {
-                // Requête vers la base de données
-                const response = await fetch(`${CONFIG.url}/rest/v1/codes?code=eq.${encodeURIComponent(inputVal)}&select=*,produits(lien_telechargement)`, {
-                    headers: { 
-                        'apikey': CONFIG.apiKey, 
-                        'Authorization': `Bearer ${CONFIG.apiKey}`,
-                        'Content-Type': 'application/json'
-                    }
+                // ICI : Utilisation de 'code_unique' au lieu de 'code'
+                const query = `${CONFIG.url}/rest/v1/codes?code_unique=eq.${encodeURIComponent(inputVal)}&select=*,produits(lien_telechargement)`;
+                const response = await fetch(query, {
+                    headers: { 'apikey': CONFIG.apiKey, 'Authorization': `Bearer ${CONFIG.apiKey}` }
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.length > 0 && data[0].produits?.lien_telechargement) {
-                    // Succès : Affichage du bouton de téléchargement
                     successBox.style.display = "block";
                     btn.style.display = "none";
                     document.getElementById('btn-download').onclick = () => {
                         window.location.href = data[0].produits.lien_telechargement;
                     };
                 } else {
-                    // Échec : Affichage du message d'erreur stylisé
                     errorBox.style.display = "block";
                     btn.disabled = false;
                     btn.innerText = "Valider le code";
                 }
             } catch (err) {
-                console.error("Erreur critique :", err);
-                alert("Erreur de connexion serveur. Veuillez réessayer.");
+                alert("Erreur de connexion.");
                 btn.disabled = false;
                 btn.innerText = "Valider le code";
             }
