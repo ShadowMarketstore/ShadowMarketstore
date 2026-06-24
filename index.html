@@ -2,22 +2,25 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHADOW MARKET STORE</title>
     <style>
         :root { 
-            --bg-color: #0e1e25; 
-            --container-bg: #172a35; 
+            --bg-color: #000000; 
+            --container-bg: #0d0d0d; 
             --accent-color: #00ad9f; 
-            --pattern-color: rgba(255, 255, 255, 0.04); 
+            --text-color: #ffffff;
+            --border-color: #333333;
         }
         
         body { 
             background-color: var(--bg-color); 
-            /* Motif de fond type "gaming/tech" */
-            background-image: radial-gradient(var(--pattern-color) 1.5px, transparent 1.5px);
-            background-size: 30px 30px;
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            /* Utilisation de ton motif de manettes en blanc pur */
+            background-image: url('https://i.imgur.com/vHqR8kU.png'); /* Remplace par le lien direct de ton image */
+            background-repeat: repeat;
+            background-size: 200px; /* Ajuste la taille selon ton besoin */
+            color: var(--text-color); 
+            font-family: 'Segoe UI', sans-serif; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -29,24 +32,25 @@
             background: var(--container-bg); 
             padding: 40px; 
             border-radius: 16px; 
-            border: 1px solid #243f4d; 
+            border: 2px solid var(--border-color); 
             width: 320px; 
             text-align: center; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
         }
 
-        h2 { text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; font-size: 22px; }
+        h2 { text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; font-size: 24px; color: var(--text-color); }
 
         input { 
             width: 100%; 
             padding: 15px; 
-            background: #061218; 
-            border: 1px solid #243f4d; 
+            background: #000; 
+            border: 1px solid var(--border-color); 
             color: white; 
             border-radius: 8px; 
             margin-bottom: 20px; 
             box-sizing: border-box;
             outline: none;
+            text-align: center;
         }
 
         button { 
@@ -55,13 +59,13 @@
             background: var(--accent-color); 
             border: none; 
             border-radius: 8px; 
-            color: white; 
+            color: black; 
             font-weight: bold; 
             cursor: pointer; 
             text-transform: uppercase;
         }
 
-        #msg { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; }
+        #msg { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -82,11 +86,12 @@
             const msg = document.getElementById('msg');
             const btn = document.getElementById('btn');
             
+            if (!code) return;
+
             btn.disabled = true;
             btn.innerText = "Vérification...";
             
             try {
-                // Requête directe : on cherche le code et on récupère le lien
                 const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=lien`, {
                     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                 });
@@ -112,3 +117,4 @@
     </script>
 </body>
 </html>
+
