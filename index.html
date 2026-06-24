@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW MARKET STORE — Vérification</title>
+    <title>SHADOW MARKET STORE — Clé d'accès</title>
     <style>
         :root {
             --bg-color: #0d1117;
             --container-bg: #161b22;
-            --accent-color: #008f72; /* Couleur émeraude/turquoise de ta v3.0 */
+            --accent-color: #008f72; /* Ta couleur émeraude d'origine */
             --accent-hover: #00755d;
             --text-color: #ffffff;
             --text-muted: #8b949e;
             --border-color: #21262d;
             --input-bg: #0d1117;
-            --success-bg: rgba(46, 164, 79, 0.1);
-            --success-border: #2ea44f;
+            --success-bg: rgba(0, 143, 114, 0.1);
+            --success-border: #008f72;
         }
 
         * {
@@ -36,13 +36,13 @@
         }
 
         .container {
-            background-color: #12161f; /* Calibré sur ta capture */
+            background-color: #12161f;
             border: 1px solid var(--border-color);
             border-radius: 12px;
             max-width: 450px;
             width: 100%;
             padding: 35px 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .header-brand {
@@ -56,6 +56,7 @@
             font-size: 20px;
             font-weight: 800;
             letter-spacing: 0.5px;
+            line-height: 1.2;
         }
 
         .brand-title span {
@@ -132,7 +133,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px;
         }
 
         .btn-submit:hover {
@@ -145,7 +145,6 @@
             cursor: not-allowed;
         }
 
-        /* Le fameux bloc vert caché par défaut */
         .success-box {
             display: none;
             background-color: var(--success-bg);
@@ -156,13 +155,10 @@
         }
 
         .success-title {
-            color: #2ea44f;
+            color: #00b492;
             font-weight: 700;
             font-size: 16px;
             margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .success-text {
@@ -187,17 +183,11 @@
         .btn-white-download:hover {
             background-color: #f6f8fa;
         }
-        
-        .btn-white-download:disabled {
-            background-color: #8b949e;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Logo et Version de ta capture 1000309341.jpg -->
         <div class="header-brand">
             <div class="brand-title">SHADOW <span>MARKET</span><br>STORE</div>
             <div class="version-badge">v3.5 • Relational Fixed</div>
@@ -213,7 +203,6 @@
 
         <button id="shdw-btn-valider" class="btn-submit" onclick="verifierCle()">✓ Validé</button>
 
-        <!-- Bloc vert de succès -->
         <div id="shdw-success-block" class="success-box">
             <div class="success-title">✓ Code validé !</div>
             <div class="success-text">Votre pack d'optimisation est prêt. Le téléchargement a été lancé automatiquement.</div>
@@ -221,10 +210,12 @@
         </div>
     </div>
 
-    <!-- SCRIPT DU SAINT-GRAAL INTÉGRÉ ET CORRIGÉ (ANTI-POPUP) -->
     <script>
-        const SUPABASE_URL = "https://votre-projet.supabase.co";
-        const SUPABASE_ANON_KEY = "votre-cle-anon-ici";
+        // ==========================================
+        // ⚠️ ENTRER TES VRAIES INFOS SUPABASE ICI :
+        // ==========================================
+        const SUPABASE_URL = "https://votre-projet.supabase.co"; 
+        const SUPABASE_ANON_KEY = "votre-cle-anon-ici"; 
 
         async function verifierCle() {
             const inputCode = document.getElementById('shdw-input-code').value.trim();
@@ -242,6 +233,7 @@
             btnValider.innerText = "⏳ Vérification...";
 
             try {
+                // Requête de jointure relationnelle Supabase
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(inputCode)}&select=*,produits(lien_telechargement)`, {
                     method: 'GET',
                     headers: {
@@ -271,40 +263,37 @@
                     return;
                 }
 
-                // Succès visuel
+                // Succès et affichage du bloc vert
                 btnValider.innerHTML = "✓ Validé";
-                btnValider.style.backgroundColor = "#2ea44f"; 
+                btnValider.style.backgroundColor = "#008f72"; 
                 successBlock.style.display = "block";
 
-                // Sécurisation du clic manuel sur le bouton blanc
+                // Configuration du bouton de secours (bouton blanc)
                 btnDownload.onclick = function() {
                     declencherTelechargementSecurise(urlTelechargement, btnDownload);
                 };
 
-                // 🚀 TÉLÉCHARGEMENT AUTOMATIQUE SYNCHRONE (Passe l'anti-pop-up mobile)
+                // 🚀 Lancement automatique ultra-propre via iframe (anti-blocage mobile)
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
                 iframe.src = urlTelechargement;
                 document.body.appendChild(iframe);
                 
                 setTimeout(() => {
-                    if (document.body.contains(iframe)) {
-                        document.body.removeChild(iframe);
-                    }
+                    if (document.body.contains(iframe)) document.body.removeChild(iframe);
                 }, 2000);
 
             } catch (error) {
-                console.error("Erreur critique :", error);
-                alert("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
+                console.error(error);
+                alert("Une erreur est survenue lors de la connexion. Vérifiez vos identifiants Supabase.");
                 btnValider.disabled = false;
-                btnValider.innerText = "Validé";
+                btnValider.innerText = "✓ Validé";
             }
         }
 
         function declencherTelechargementSecurise(url, boutonElement) {
-            if (boutonElement.classList.contains('downloading')) return;
-
-            boutonElement.classList.add('downloading');
+            if (boutonElement.disabled === true) return;
+            
             boutonElement.disabled = true;
             const texteOriginal = boutonElement.innerHTML;
             boutonElement.innerHTML = "⏳ Téléchargement en cours...";
@@ -315,26 +304,13 @@
             document.body.appendChild(iframe);
 
             setTimeout(() => {
-                if (document.body.contains(iframe)) {
-                    document.body.removeChild(iframe);
-                }
+                if (document.body.contains(iframe)) document.body.removeChild(iframe);
                 setTimeout(() => {
                     boutonElement.innerHTML = texteOriginal;
                     boutonElement.disabled = false;
-                    boutonElement.classList.remove('downloading');
-                }, 6000);
+                }, 5000);
             }, 1000);
         }
-
-        // Reset du cache
-        window.addEventListener('pageshow', () => {
-            const btnDownload = document.getElementById('shdw-btn-download');
-            if (btnDownload) {
-                btnDownload.disabled = false;
-                btnDownload.classList.remove('downloading');
-                btnDownload.innerHTML = "↓ Télécharger le produit";
-            }
-        });
     </script>
 </body>
 </html>
