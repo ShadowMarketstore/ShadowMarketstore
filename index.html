@@ -2,42 +2,33 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHADOW MARKET STORE</title>
     <style>
-        /* DESIGN VISUEL */
+        /* --- VISUEL SEULEMENT --- */
         body {
             margin: 0;
-            padding: 0;
-            background-color: #000000; /* Noir pur */
-            /* Motifs de manettes en blanc pur */
-            background-image: url('https://i.imgur.com/k9b6C7Y.png'); 
-            background-repeat: repeat;
-            background-size: 200px;
+            background-color: #000000;
+            /* Motif gaming intégré sans lien externe pour éviter les bugs */
+            background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
+            background-size: 40px 40px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: sans-serif;
         }
 
         .container {
             background: #0d0d0d;
             padding: 40px;
-            border-radius: 20px;
-            border: 2px solid #1a1a1a;
+            border-radius: 16px;
+            border: 2px solid #222;
             width: 320px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
-        h2 { 
-            color: #00ad9f; 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            margin-bottom: 25px; 
-            font-size: 22px;
-        }
+        h2 { color: #00ad9f; text-transform: uppercase; margin-bottom: 25px; }
 
         input {
             width: 100%;
@@ -49,7 +40,6 @@
             border-radius: 10px;
             box-sizing: border-box;
             text-align: center;
-            font-size: 16px;
         }
 
         button {
@@ -62,12 +52,10 @@
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
-            transition: 0.2s;
         }
 
-        button:hover { background: #008f83; }
-
         #msg { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; font-size: 14px; }
+        /* --- FIN VISUEL --- */
     </style>
 </head>
 <body>
@@ -80,7 +68,7 @@
     </div>
 
     <script>
-        // --- PARTIE TECHNIQUE (NE PAS TOUCHER) ---
+        // --- TECHNIQUE INTACTE (NE PAS TOUCHER) ---
         const SUPA_URL = "https://tckfcaqjvtijeykjhyhq.supabase.co";
         const SUPA_KEY = "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh";
 
@@ -116,7 +104,7 @@
             btn.disabled = false;
             btn.innerText = "VALIDER LE CODE";
         }
-        // --- FIN DE LA PARTIE TECHNIQUE ---
+        // --- FIN TECHNIQUE ---
     </script>
 </body>
 </html>
