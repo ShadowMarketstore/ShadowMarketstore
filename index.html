@@ -7,166 +7,336 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-color: #0e1118; /* Noir profond style Netlify */
+            background-color: #0e1118;
         }
-        .netlify-cyan {
-            color: #00ad9f; /* Le Cyan officiel de Netlify */
-        }
-        .bg-netlify-cyan {
-            background-color: #00ad9f;
-        }
-        .bg-netlify-cyan:hover {
-            background-color: #008c81;
-        }
-            
-        /* Zone Spinner corrigée et isolée */
+        .netlify-cyan { color: #00ad9f; }
+        .bg-netlify-cyan { background-color: #00ad9f; }
+        .bg-netlify-cyan:hover { background-color: #008c81; }
+
         .spinner {
             width: 20px;
             height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top: 3px solid #00ad9f;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.7s linear infinite;
             display: inline-block;
+            flex-shrink: 0;
+        }
+        @keyframes spin {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+        /* Transition douce sur la zone résultat */
+        #resultZone {
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        #resultZone.entering {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        #resultZone.entered {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Input focus ring cyan */
+        #keyCode:focus {
+            outline: none;
+            border-color: #00ad9f;
+            box-shadow: 0 0 0 3px rgba(0,173,159,0.18);
         }
     </style>
 </head>
 <body class="text-white font-sans min-h-screen flex flex-col justify-between">
 
+    <!-- HEADER -->
     <header class="border-b border-gray-800 bg-[#141923] px-6 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold tracking-wide">SHADOW <span class="netlify-cyan">MARKET STORE</span></h1>
-        <span class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full border border-gray-700"> v2.0 - Supabase Connected</span>
+        <h1 class="text-xl font-bold tracking-wide">
+            SHADOW <span class="netlify-cyan">MARKET STORE</span>
+        </h1>
+        <span class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full border border-gray-700">
+            v2.1 · Supabase Connected
+        </span>
     </header>
 
+    <!-- MAIN -->
     <main class="flex-grow flex items-center justify-center p-4">
         <div class="bg-[#141923] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
+
             <h2 class="text-2xl font-bold mb-2 text-center">Vérification de votre clé</h2>
-            <p class="text-gray-400 text-sm text-center mb-6">Entrez le code reçu lors de votre achat pour récupérer votre produit.</p>
+            <p class="text-gray-400 text-sm text-center mb-6">
+                Entrez le code reçu lors de votre achat pour récupérer votre produit.
+            </p>
 
-            <div class="space-y-4">
-                <div>
-                    <label for="keyCode" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Code d'accès</label>
-                    <input type="text" id="keyCode" placeholder="Ex: SHD079e1IP" 
-                           class="w-full bg-[#0e1118] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-[#00ad9f] transition-colors">
+            <!--
+                POINT 1 — Formulaire avec onsubmit + preventDefault.
+                Utiliser un vrai <form> intercepté est la seule façon 100% fiable
+                de bloquer le rechargement, que l'utilisateur clique le bouton
+                ou appuie sur Entrée depuis le champ.
+            -->
+            <form id="verifyForm" onsubmit="handleSubmit(event)" novalidate autocomplete="off">
+                <div class="space-y-4">
+                    <div>
+                        <label for="keyCode"
+                               class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                            Code d'accès
+                        </label>
+                        <input
+                            type="text"
+                            id="keyCode"
+                            name="keyCode"
+                            placeholder="Ex: SHD079e1IP"
+                            maxlength="60"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            class="w-full bg-[#0e1118] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-600 transition-colors"
+                        />
+                    </div>
+
+                    <button
+                        id="btnVerify"
+                        type="submit"
+                        class="w-full bg-netlify-cyan text-black font-bold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                    >
+                        <span id="btnLabel">Vérifier et Télécharger</span>
+                    </button>
                 </div>
+            </form>
 
-                <button id="btnVerify" onclick="verifyCode()" 
-                        class="w-full bg-netlify-cyan text-black font-bold py-3 px-4 rounded-lg transition-colors duration-200">
-                    Vérifier et Télécharger
-                </button>
-            </div>
+            <!-- Zone statut (spinner + messages inline) -->
+            <div id="statusZone" class="mt-4 text-center text-sm min-h-[28px]"></div>
 
-            <div id="statusZone" class="mt-4 text-center text-sm"></div>
-
+            <!-- Zone résultat (succès ou erreur) — cachée par défaut -->
             <div id="resultZone" class="mt-6 hidden p-4 rounded-lg border">
-                <p id="resultTitle" class="font-bold text-lg mb-1"></p>
+                <p id="resultTitle"   class="font-bold text-lg mb-1"></p>
                 <p id="resultMessage" class="text-sm text-gray-400 mb-4"></p>
-                <a id="downloadBtn" href="#" target="_blank" 
-                   class="inline-flex items-center justify-center w-full bg-white text-black font-bold py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
-                    Télécharger le produit
+                <a id="downloadBtn"
+                   href="#"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="hidden inline-flex items-center justify-center w-full bg-white text-black font-bold py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
+                    ⬇ Télécharger le produit
                 </a>
             </div>
+
         </div>
     </main>
 
+    <!-- FOOTER -->
     <footer class="border-t border-gray-800 bg-[#0e1118] text-center py-4 text-xs text-gray-500">
         &copy; 2026 Shadow Market Store. Tous droits réservés.
     </footer>
 
+    <!-- SDK Supabase v2 — chargé AVANT le script applicatif -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
-        // 1. Connexion au projet Supabase
-        const supabaseUrl = 'https://tckfcaqjvtijeykjhyhq.supabase.co';
-        const supabaseKey = 'sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        'use strict';
 
-        // 2. Fonction principale de vérification
-        async function verifyCode() {
-            const codeSaisi = document.getElementById('keyCode').value.trim();
-            const statusZone = document.getElementById('statusZone'); 
-            const boutonValider = document.getElementById('btnVerify');
-            const resultZone = document.getElementById('resultZone');
-            const resultTitle = document.getElementById('resultTitle');
-            const resultMessage = document.getElementById('resultMessage');
-            const downloadBtn = document.getElementById('downloadBtn');
+        /* ── CONFIG SUPABASE ──────────────────────────────────── */
+        const SUPABASE_URL = 'https://tckfcaqjvtijeykjhyhq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh';
 
-            // Réinitialisation des zones
-            statusZone.innerHTML = "";
-            resultZone.classList.add('hidden');
+        /*
+            POINT 3 — Initialisation du client UNE SEULE FOIS au chargement
+            de la page (pas à chaque clic). Évite de recréer la connexion
+            à chaque vérification, ce qui ralentissait l'exécution.
+        */
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            if (!codeSaisi) {
-                statusZone.innerHTML = "<span class='text-orange-400'>⚠️ Veuillez saisir un code.</span>";
+        /* ── REFS DOM — récupérées une seule fois ──────────────── */
+        const form        = document.getElementById('verifyForm');
+        const keyInput    = document.getElementById('keyCode');
+        const btnVerify   = document.getElementById('btnVerify');
+        const btnLabel    = document.getElementById('btnLabel');
+        const statusZone  = document.getElementById('statusZone');
+        const resultZone  = document.getElementById('resultZone');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMsg   = document.getElementById('resultMessage');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        /* ── HELPERS UI ────────────────────────────────────────── */
+
+        // Nettoie l'espace superflus à la saisie, sans forcer la casse
+        keyInput.addEventListener('input', () => {
+            const pos     = keyInput.selectionStart;
+            const cleaned = keyInput.value.replace(/\s/g, '');
+            if (cleaned !== keyInput.value) {
+                keyInput.value = cleaned;
+                try { keyInput.setSelectionRange(pos, pos); } catch (_) {}
+            }
+        });
+
+        function setLoading(on) {
+            btnVerify.disabled = on;
+            if (on) {
+                btnLabel.textContent = 'Recherche en cours…';
+                // Injecte le spinner dans le bouton
+                const existing = btnVerify.querySelector('.spinner');
+                if (!existing) {
+                    const s = document.createElement('div');
+                    s.className = 'spinner';
+                    btnVerify.insertBefore(s, btnLabel);
+                }
+                statusZone.innerHTML = '';
+            } else {
+                const s = btnVerify.querySelector('.spinner');
+                if (s) s.remove();
+            }
+        }
+
+        function resetBtn(label = 'Vérifier et Télécharger') {
+            btnLabel.textContent = label;
+            setLoading(false);
+            btnVerify.disabled = false;
+        }
+
+        function afficherResultat({ succes, titre, message, url }) {
+            statusZone.innerHTML = '';
+            resultZone.classList.add('entering');
+            resultZone.classList.remove('hidden');
+
+            // Forcer un reflow pour déclencher la transition CSS
+            void resultZone.offsetWidth;
+            resultZone.classList.add('entered');
+            resultZone.classList.remove('entering');
+
+            if (succes) {
+                resultZone.className = 'mt-6 p-4 rounded-lg border bg-green-950/50 border-green-800 transition-all duration-300';
+                resultTitle.textContent  = titre;
+                resultTitle.className    = 'font-bold text-lg text-green-400 mb-1';
+                resultMsg.textContent    = message;
+                downloadBtn.href         = url || '#';
+                downloadBtn.classList.remove('hidden');
+            } else {
+                resultZone.className = 'mt-6 p-4 rounded-lg border bg-red-950/50 border-red-800 transition-all duration-300';
+                resultTitle.textContent  = titre;
+                resultTitle.className    = 'font-bold text-lg text-red-400 mb-1';
+                resultMsg.textContent    = message;
+                downloadBtn.classList.add('hidden');
+            }
+        }
+
+        /* ── POINT 1 — Interception du formulaire ──────────────── */
+        /*
+            handleSubmit est branché sur onsubmit du <form>.
+            event.preventDefault() bloque le comportement natif du navigateur
+            (rechargement / redirection), que ce soit via clic ou touche Entrée.
+            C'est plus robuste qu'un onclick sur le bouton seul.
+        */
+        async function handleSubmit(event) {
+            // ← BLOQUE le rechargement de la page, quoi qu'il arrive
+            event.preventDefault();
+            event.stopPropagation();
+
+            /* ── POINT 4 — Sécurité / validation côté client ──── */
+            // Normalisation : trim + toUpperCase pour la comparaison
+            // (ilike côté Supabase gère aussi la casse, double protection)
+            const code = keyInput.value.trim().toUpperCase();
+
+            if (!code) {
+                statusZone.innerHTML = "<span class='text-orange-400'>⚠ Veuillez saisir un code.</span>";
+                keyInput.focus();
                 return;
             }
 
-            // ÉTAPE 1 : Activation de l'animation de chargement
-            boutonValider.disabled = true;
-            boutonValider.innerText = "Recherche en cours...";
-            
-            statusZone.innerHTML = `
-                <div class="flex items-center justify-center gap-2 text-sky-400 my-2">
-                    <div class="spinner"></div>
-                    <span>Vérification dans la base de données...</span>
-                </div>
-            `;
+            // Longueur minimale anti-spam (adapte selon ton format réel)
+            if (code.length < 4) {
+                statusZone.innerHTML = "<span class='text-orange-400'>⚠ Code trop court.</span>";
+                keyInput.focus();
+                return;
+            }
+
+            // Caractères autorisés : lettres, chiffres, tirets uniquement
+            if (!/^[A-Z0-9\-]+$/.test(code)) {
+                statusZone.innerHTML = "<span class='text-orange-400'>⚠ Code contient des caractères non valides.</span>";
+                keyInput.focus();
+                return;
+            }
+
+            // Masquer le résultat précédent
+            resultZone.classList.add('hidden');
+            resultZone.classList.remove('entered');
+            downloadBtn.classList.add('hidden');
+
+            setLoading(true);
 
             try {
-                // ÉTAPE 2 : Recherche ciblée sur la table 'codes' et la colonne 'code_unique'
-                const { data, error } = await supabaseClient
-                    .from('codes') 
-                    .select('*')
-                    .eq('code_unique', codeSaisi)
-                    .single();
+                /*
+                    POINT 2 — Requête Supabase optimisée.
+                    .ilike() = comparaison insensible à la casse côté Postgres.
+                    .select() cible uniquement les colonnes nécessaires
+                    (évite de transférer des données inutiles → plus rapide).
+                    .maybeSingle() retourne null si 0 résultat, sans lever d'erreur
+                    Supabase (contrairement à .single() qui renvoie une erreur 406
+                    si aucune ligne n'est trouvée).
+                    Timeout de 8 secondes via AbortController pour ne jamais
+                    laisser le client bloqué indéfiniment.
+                */
+                const controller = new AbortController();
+                const timeoutId  = setTimeout(() => controller.abort(), 8000);
 
-                // ÉTAPE 3 : Traitement des résultats
-                if (error || !data) {
-                    statusZone.innerHTML = "";
-                    resultZone.classList.remove('hidden');
-                    resultZone.className = "mt-6 p-4 rounded-lg border bg-red-950/50 border-red-800";
-                    resultTitle.innerText = "Code Invalide";
-                    resultTitle.className = "font-bold text-lg text-red-400 mb-1";
-                    resultMessage.innerText = "Ce code d'accès n'existe pas ou a expiré. Veuillez vérifier votre saisie.";
-                    downloadBtn.classList.add('hidden');
+                const { data, error } = await db
+                    .from('codes_produits')
+                    .select('code, nom_produit, lien_telechargement')
+                    .ilike('code', code)
+                    .maybeSingle();
+
+                clearTimeout(timeoutId);
+
+                /* ── POINT 2 — Traitement des cas d'erreur ─────── */
+
+                // Erreur réseau ou Supabase (RLS, permission, panne…)
+                if (error) {
+                    console.error('[ShadowMarket] Erreur Supabase :', error.message);
+                    afficherResultat({
+                        succes:  false,
+                        titre:   'Erreur de connexion',
+                        message: 'Impossible de joindre la base de données. Vérifiez votre connexion et réessayez.',
+                    });
+                    resetBtn();
                     return;
                 }
 
-                // Si le code est valide
-                statusZone.innerHTML = "";
-                resultZone.classList.remove('hidden');
-                resultZone.className = "mt-6 p-4 rounded-lg border bg-green-950/50 border-green-800";
-                resultTitle.innerText = "Code Valide !";
-                resultTitle.className = "font-bold text-lg text-green-400 mb-1";
-                resultMessage.innerText = `Produit lié trouvé (ID: ${data.produit_id || 'N/A'}).`;
-                
-                // On configure le bouton de téléchargement (cherche la colonne de ton lien ou met un '#' par défaut)
-                downloadBtn.classList.remove('hidden');
-                downloadBtn.href = data.lien_telechargement || "#";
-                
-                boutonValider.innerText = "Validé !";
+                // Code introuvable
+                if (!data) {
+                    afficherResultat({
+                        succes:  false,
+                        titre:   'Code invalide',
+                        message: 'Ce code n\'existe pas ou a déjà été utilisé. Vérifiez votre e-mail de confirmation.',
+                    });
+                    keyInput.classList.add('border-red-600');
+                    resetBtn();
+                    return;
+                }
+
+                // ✅ Code valide
+                keyInput.classList.remove('border-red-600');
+                afficherResultat({
+                    succes:  true,
+                    titre:   '✓ Code validé !',
+                    message: `Produit : ${data.nom_produit || 'Votre produit numérique'}`,
+                    url:     data.lien_telechargement || '#',
+                });
+                resetBtn('✓ Validé');
+                btnVerify.disabled = true; // Empêche une double soumission
 
             } catch (err) {
-                console.error("Erreur de connexion:", err);
-                statusZone.innerHTML = "";
-                resultZone.classList.remove('hidden');
-                resultZone.className = "mt-6 p-4 rounded-lg border bg-red-950/50 border-red-800";
-                resultTitle.innerText = "Erreur de Connexion";
-                resultTitle.className = "font-bold text-lg text-red-400 mb-1";
-                resultMessage.innerText = "Impossible de joindre la base de données. Vérifiez votre connexion internet.";
-                downloadBtn.classList.add('hidden');
-            } finally {
-                if (boutonValider.innerText !== "Validé !") {
-                    boutonValider.disabled = false;
-                    boutonValider.innerText = "Vérifier et Télécharger";
-                }
+                // Timeout AbortController ou erreur JS inattendue
+                const isTimeout = err.name === 'AbortError';
+                console.error('[ShadowMarket] Exception :', err);
+                afficherResultat({
+                    succes:  false,
+                    titre:   isTimeout ? 'Délai dépassé' : 'Erreur inattendue',
+                    message: isTimeout
+                        ? 'Le serveur met trop de temps à répondre. Réessayez dans quelques instants.'
+                        : 'Une erreur inattendue s\'est produite. Rechargez la page et réessayez.',
+                });
+                resetBtn();
             }
         }
     </script>
