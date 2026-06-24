@@ -2,89 +2,54 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHADOW MARKET STORE</title>
     <style>
-        :root { --bg-color: #0e1e25; --container-bg: #172a35; --accent-color: #00ad9f; --success-color: #21a283; --error-color: #ff4d4d; --text-color: #ffffff; --text-muted: #849ca6; --border-color: #243f4d; }
-        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background-color: var(--container-bg); width: 100%; max-width: 500px; padding: 50px; border-radius: 16px; border: 1px solid var(--border-color); text-align: center; }
-        .brand-title { font-size: 28px; font-weight: 900; text-transform: uppercase; margin-bottom: 40px; }
-        .brand-title span { color: var(--accent-color); }
-        .input-field { width: 100%; padding: 20px; background: #0e1e25; border: 2px solid var(--border-color); color: white; border-radius: 10px; box-sizing: border-box; margin-bottom: 20px; font-size: 16px; }
-        .btn-main { width: 100%; padding: 20px; background: var(--accent-color); border: none; border-radius: 10px; color: white; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 16px; }
-        #message-container { margin-top: 30px; }
-        .box-feedback { padding: 20px; border-radius: 10px; display: none; margin-bottom: 10px; }
-        .error-box { border: 1px solid var(--error-color); color: var(--error-color); background: rgba(255, 77, 77, 0.05); }
-        .success-box { border: 1px solid var(--success-color); color: var(--success-color); background: rgba(33, 162, 131, 0.05); }
+        :root { --bg-color: #0e1e25; --accent-color: #00ad9f; }
+        body { background-color: var(--bg-color); color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #172a35; padding: 40px; border-radius: 12px; border: 1px solid #243f4d; width: 350px; text-align: center; }
+        input { width: 100%; padding: 15px; background: #0e1e25; border: 1px solid #243f4d; color: white; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: var(--accent-color); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+        #msg { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="brand-title">SHADOW <span>MARKET</span> STORE</div>
-        <input type="text" id="code-input" class="input-field" placeholder="Entrez votre code">
-        <button id="btn-valider" class="btn-main" onclick="processValidation()">Valider le code</button>
-        <div id="message-container">
-            <div id="error-box" class="box-feedback error-box"></div>
-            <div id="success-box" class="box-feedback success-box">
-                <p>✓ Code valide !</p>
-                <button id="btn-download" class="btn-main" style="background: var(--success-color); margin-top: 15px;">Télécharger le produit</button>
-            </div>
-        </div>
+        <h2>SHADOW MARKET STORE</h2>
+        <input type="text" id="code-input" placeholder="Entrez votre code...">
+        <button id="btn" onclick="valider()">Valider</button>
+        <div id="msg"></div>
     </div>
 
     <script>
-        const CONFIG = {
-            url: "https://tckfcaqjvtijeykjhyhq.supabase.co",
-            apiKey: "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh"
-        };
+        const SUPA_URL = "https://tckfcaqjvtijeykjhyhq.supabase.co";
+        const SUPA_KEY = "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh";
 
-        async function processValidation() {
-            const inputVal = document.getElementById('code-input').value.trim();
-            const btn = document.getElementById('btn-valider');
-            const errorBox = document.getElementById('error-box');
-            const successBox = document.getElementById('success-box');
+        async function valider() {
+            const code = document.getElementById('code-input').value.trim();
+            const msg = document.getElementById('msg');
+            const btn = document.getElementById('btn');
             
-            errorBox.style.display = "none";
-            successBox.style.display = "none";
             btn.disabled = true;
-            btn.innerText = "Vérification...";
-
             try {
-                // Étape 1 : Récupérer le code pour trouver le produit_id
-                const resCode = await fetch(`${CONFIG.url}/rest/v1/codes?code_unique=eq.${encodeURIComponent(inputVal)}`, {
-                    headers: { 'apikey': CONFIG.apiKey, 'Authorization': `Bearer ${CONFIG.apiKey}`, 'Content-Type': 'application/json' }
+                // On va chercher directement le contenu de la colonne 'lien' pour ce code
+                const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=lien`, {
+                    headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                 });
-                const dataCode = await resCode.json();
+                const data = await res.json();
 
-                if (dataCode.length > 0) {
-                    const prodId = dataCode[0].produit_id;
-                    
-                    // Étape 2 : Récupérer le lien du produit via son ID
-                    const resProd = await fetch(`${CONFIG.url}/rest/v1/produits?id=eq.${prodId}`, {
-                        headers: { 'apikey': CONFIG.apiKey, 'Authorization': `Bearer ${CONFIG.apiKey}`, 'Content-Type': 'application/json' }
-                    });
-                    const dataProd = await resProd.json();
-
-                    if (dataProd.length > 0 && dataProd[0].lien_telechargement) {
-                        successBox.style.display = "block";
-                        btn.style.display = "none";
-                        document.getElementById('btn-download').onclick = () => {
-                            window.location.href = dataProd[0].lien_telechargement;
-                        };
-                    } else {
-                        errorBox.innerText = "Code trouvé, mais impossible de lier le produit.";
-                        errorBox.style.display = "block";
-                    }
+                if (data.length > 0 && data[0].lien) {
+                    msg.style.display = "block";
+                    msg.style.background = "#21a283";
+                    msg.innerHTML = `Code valide !<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold;">TÉLÉCHARGER LE PRODUIT</a>`;
                 } else {
-                    errorBox.innerText = "Code invalide.";
-                    errorBox.style.display = "block";
+                    msg.style.display = "block";
+                    msg.style.background = "#ff4d4d";
+                    msg.innerHTML = "Code invalide ou pas de produit lié.";
                 }
-            } catch (err) {
-                errorBox.innerText = "Erreur de connexion serveur.";
-                errorBox.style.display = "block";
+            } catch (e) {
+                msg.innerHTML = "Erreur de connexion.";
             }
             btn.disabled = false;
-            btn.innerText = "Valider le code";
         }
     </script>
 </body>
