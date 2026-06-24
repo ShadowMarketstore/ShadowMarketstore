@@ -3,43 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW MARKET</title>
+    <title>SHADOW MARKET STORE</title>
     <style>
-        /* Design sombre et professionnel */
+        /* DESIGN VISUEL */
         body {
             margin: 0;
             padding: 0;
-            background-color: #000000;
-            background-image: radial-gradient(circle, #111111 1px, transparent 1px);
-            background-size: 30px 30px; /* Le motif "gaming" intégré sans image externe */
-            color: #ffffff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #000000; /* Noir pur */
+            /* Motifs de manettes en blanc pur */
+            background-image: url('https://i.imgur.com/k9b6C7Y.png'); 
+            background-repeat: repeat;
+            background-size: 200px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
         }
 
         .container {
             background: #0d0d0d;
             padding: 40px;
-            border: 2px solid #222222;
             border-radius: 20px;
-            width: 350px;
+            border: 2px solid #1a1a1a;
+            width: 320px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
         }
 
-        h2 { font-size: 28px; margin-bottom: 30px; letter-spacing: 3px; color: #00ad9f; }
+        h2 { 
+            color: #00ad9f; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            margin-bottom: 25px; 
+            font-size: 22px;
+        }
 
         input {
             width: 100%;
             padding: 15px;
+            margin-bottom: 20px;
             background: #000;
             border: 1px solid #333;
             color: #fff;
             border-radius: 10px;
-            margin-bottom: 20px;
             box-sizing: border-box;
             text-align: center;
             font-size: 16px;
@@ -55,12 +62,12 @@
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.2s;
         }
 
         button:hover { background: #008f83; }
 
-        #msg { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; font-weight: 500; }
+        #msg { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -68,11 +75,12 @@
     <div class="container">
         <h2>SHADOW MARKET</h2>
         <input type="text" id="code-input" placeholder="ENTREZ VOTRE CODE">
-        <button id="btn" onclick="valider()">Valider le code</button>
+        <button id="btn" onclick="valider()">VALIDER LE CODE</button>
         <div id="msg"></div>
     </div>
 
     <script>
+        // --- PARTIE TECHNIQUE (NE PAS TOUCHER) ---
         const SUPA_URL = "https://tckfcaqjvtijeykjhyhq.supabase.co";
         const SUPA_KEY = "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh";
 
@@ -81,10 +89,8 @@
             const msg = document.getElementById('msg');
             const btn = document.getElementById('btn');
             
-            if (!code) return;
-
             btn.disabled = true;
-            btn.innerText = "VÉRIFICATION...";
+            btn.innerText = "Vérification...";
             
             try {
                 const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=lien`, {
@@ -105,12 +111,13 @@
                 }
             } catch (e) {
                 msg.style.display = "block";
-                msg.style.background = "#330000";
                 msg.innerHTML = "ERREUR DE CONNEXION.";
             }
             btn.disabled = false;
-            btn.innerText = "Valider le code";
+            btn.innerText = "VALIDER LE CODE";
         }
+        // --- FIN DE LA PARTIE TECHNIQUE ---
     </script>
 </body>
 </html>
+
