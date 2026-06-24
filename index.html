@@ -1,348 +1,109 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadow Market Store - Récupération de Produit</title>
-    <style>
-        :root {
-            --bg-color: #0d1117;
-            --container-bg: #161b22;
-            --accent-color: #58a6ff;
-            --text-color: #c9d1d9;
-            --text-muted: #8b949e;
-            --border-color: #30363d;
-            --success-color: #2ea44f;
-            --btn-hover: #1f75cb;
-        }
+// Configuration de ton client Supabase
+const SUPABASE_URL = "https://votre-projet.supabase.co";
+const SUPABASE_ANON_KEY = "votre-cle-anon-ici";
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+// Fonction principale de vérification (déclenchée lors du clic sur "Validé")
+async function verifierCle() {
+    const inputCode = document.getElementById('shdw-input-code').value.trim();
+    const btnValider = document.getElementById('shdw-btn-valider');
+    const successBlock = document.getElementById('shdw-success-block');
+    const btnDownload = document.getElementById('shdw-btn-download');
+    
+    // Zone de texte pour afficher les erreurs proprement (à ajouter dans ton HTML si tu veux, ou reste en alerte propre)
+    if (!inputCode) {
+        alert("Veuillez entrer un code d'accès.");
+        return;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    // Protection : Verrouiller le bouton de validation pendant la requête
+    btnValider.disabled = true;
+    const texteOriginalValider = btnValider.innerText;
+    btnValider.innerText = "⏳ Vérification...";
 
-        .container {
-            background-color: var(--container-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            max-width: 600px;
-            width: 100%;
-            padding: 30px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 15px;
-            color: #ffffff;
-            text-align: center;
-        }
-
-        .instruction-box {
-            background-color: rgba(88, 166, 255, 0.1);
-            border-left: 4px solid var(--accent-color);
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 25px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .instruction-box strong {
-            color: var(--accent-color);
-        }
-
-        .product-card {
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .product-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffffff;
-            margin-bottom: 15px;
-        }
-
-        .code-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .code-display {
-            background-color: #0d1117;
-            border: 1px solid var(--border-color);
-            padding: 10px 15px;
-            font-family: monospace;
-            font-size: 16px;
-            border-radius: 4px;
-            flex-grow: 1;
-            color: #58a6ff;
-            letter-spacing: 1px;
-            user-select: all;
-        }
-
-        button {
-            cursor: pointer;
-            font-weight: 500;
-            border-radius: 6px;
-            transition: background-color 0.2s, opacity 0.2s;
-            border: none;
-        }
-
-        .btn-copy {
-            background-color: #21262d;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 10px 15px;
-            font-size: 14px;
-        }
-
-        .btn-copy:hover {
-            background-color: #30363d;
-            color: #ffffff;
-        }
-
-        .btn-download {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            background-color: var(--success-color);
-            color: #ffffff;
-            padding: 12px 20px;
-            font-size: 16px;
-            text-decoration: none;
-            text-align: center;
-            margin-top: 5px;
-        }
-
-        .btn-download:hover {
-            background-color: #2c974b;
-        }
-
-        .btn-download:disabled, .btn-copy:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 25px;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--success-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            font-size: 14px;
-            display: none;
-            z-index: 1000;
-        }
-        
-        .loading-text {
-            text-align: center;
-            color: var(--text-muted);
-            font-style: italic;
-            padding: 20px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h1>🎁 Vos produits sont prêts !</h1>
-        
-        <div class="instruction-box">
-            <strong>Instructions importantes :</strong><br>
-            1. Copiez d'abord votre code unique ci-dessous.<br>
-            2. Cliquez sur le bouton de téléchargement pour obtenir votre produit.<br>
-            3. Entrez votre code si l'application ou le pack vous le demande à l'installation.<br>
-            <em>Si vous fermez cette page, conservez précieusement vos codes.</em>
-        </div>
-
-        <div id="products-list">
-            <div class="loading-text">Chargement de vos accès sécurisés...</div>
-        </div>
-
-        <div class="footer">
-            Shadow Market Store © 2026 — Paiement sécurisé et accès instantané
-        </div>
-    </div>
-
-    <div class="toast" id="toast">Code copié dans le presse-papiers !</div>
-
-    <script>
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 2500);
-        }
-
-        function copyCode(elementId, button) {
-            const target = document.getElementById(elementId);
-            const codeText = target.innerText;
-            
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(codeText).then(() => {
-                    triggerCopySuccess(button);
-                }).catch(() => {
-                    fallbackCopy(target, button);
-                });
-            } else {
-                fallbackCopy(target, button);
+    try {
+        // Requête vers Supabase
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/codes?code=eq.${encodeURIComponent(inputCode)}&select=*,produits(lien_telechargement)`, {
+            method: 'GET',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
             }
-        }
-
-        function fallbackCopy(targetElement, button) {
-            try {
-                const selection = window.getSelection();
-                const range = document.createRange();
-                range.selectNodeContents(targetElement);
-                selection.removeAllRanges();
-                selection.addRange(range);
-                document.execCommand('copy');
-                selection.removeAllRanges();
-                triggerCopySuccess(button);
-            } catch (err) {
-                showToast("⚠️ Veuillez copier le code manuellement.");
-            }
-        }
-
-        function triggerCopySuccess(button) {
-            const originalText = button.innerText;
-            button.innerText = "✓ Copié";
-            button.disabled = true;
-            showToast("Code copié dans le presse-papiers !");
-            setTimeout(() => {
-                button.innerText = originalText;
-                button.disabled = false;
-            }, 2000);
-        }
-
-        function handleDownload(downloadUrl, button) {
-            if (button.classList.contains('downloading')) return;
-            
-            button.classList.add('downloading');
-            button.disabled = true;
-            const originalText = button.innerHTML;
-            
-            button.innerHTML = "⏳ Téléchargement en cours (Vérifiez vos fichiers)...";
-
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.setAttribute('download', '');
-            link.target = "_blank"; 
-            document.body.appendChild(link);
-            
-            setTimeout(() => {
-                link.click();
-                document.body.removeChild(link);
-                
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                    button.classList.remove('downloading');
-                }, 8000);
-            }, 800);
-        }
-
-        function afficherProduitsAchetes(listeProduits) {
-            const container = document.getElementById('products-list');
-            container.innerHTML = ''; 
-
-            if(listeProduits.length === 0) {
-                container.innerHTML = '<div class="loading-text">Aucun produit trouvé. Contactez le support.</div>';
-                return;
-            }
-
-            listeProduits.forEach((prod, index) => {
-                const idUnique = index + 1;
-                
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                
-                const title = document.createElement('div');
-                title.className = 'product-title';
-                title.innerText = prod.nom; 
-                
-                const codeContainer = document.createElement('div');
-                codeContainer.className = 'code-container';
-                
-                const codeDisplay = document.createElement('div');
-                codeDisplay.className = 'code-display';
-                // IDs préfixés par 'shdw-' pour isolation complète
-                codeDisplay.id = `shdw-code-${idUnique}`;
-                codeDisplay.innerText = prod.code; 
-                
-                const btnCopy = document.createElement('button');
-                btnCopy.className = 'btn-copy';
-                btnCopy.innerText = 'Copier';
-                btnCopy.addEventListener('click', () => copyCode(`shdw-code-${idUnique}`, btnCopy));
-                
-                const btnDownload = document.createElement('button');
-                btnDownload.className = 'btn-download';
-                btnDownload.id = `shdw-dl-${idUnique}`;
-                btnDownload.innerHTML = '📥 Télécharger le produit';
-                btnDownload.addEventListener('click', () => handleDownload(prod.lien, btnDownload));
-                
-                codeContainer.appendChild(codeDisplay);
-                codeContainer.appendChild(btnCopy);
-                card.appendChild(title);
-                card.appendChild(codeContainer);
-                card.appendChild(btnDownload);
-                
-                container.appendChild(card);
-            });
-        }
-
-        window.addEventListener('pageshow', (event) => {
-            const buttons = document.querySelectorAll('.btn-download');
-            buttons.forEach(btn => {
-                btn.disabled = false;
-                btn.classList.remove('downloading');
-                btn.innerHTML = '📥 Télécharger le produit';
-            });
         });
 
-        // Simulation de test automatique
-        window.addEventListener('DOMContentLoaded', () => {
-            const panierSimule = [
-                { nom: "Shadow Input Premium", code: "SDW-PREM-883A-91Xz", lien: "https://votre-lien-storage-public.com/shadow_input_prem.zip" },
-                { nom: "Shadow Débloque", code: "SDW-DBLQ-441P-00LL", lien: "https://votre-lien-storage-public.com/shadow_debloque.zip" }
-            ];
-            
-            setTimeout(() => {
-                afficherProduitsAchetes(panierSimule);
-            }, 500);
-        });
-    </script>
-</body>
-</html>
+        if (!response.ok) throw new Error("Erreur réseau");
+
+        const data = await response.json();
+
+        // 1. Si le code n'existe pas dans la base
+        if (!data || data.length === 0) {
+            alert("❌ Code invalide. Veuillez vérifier votre saisie.");
+            btnValider.disabled = false;
+            btnValider.innerText = texteOriginalValider;
+            return;
+        }
+
+        const donnesCode = data[0];
+        const urlTelechargement = donnesCode.produits?.lien_telechargement;
+
+        if (!urlTelechargement) {
+            alert("⚠️ Ce produit n'a pas de lien de téléchargement configuré.");
+            btnValider.disabled = false;
+            btnValider.innerText = texteOriginalValider;
+            return;
+        }
+
+        // 2. Si le code est valide : Changement d'état visuel immédiat
+        btnValider.innerHTML = "✓ Validé";
+        btnValider.style.backgroundColor = "#2ea44f"; 
+        
+        // Affichage du bloc vert de succès
+        successBlock.style.display = "block";
+
+        // Configuration du bouton blanc de secours
+        btnDownload.onclick = function() {
+            declencherTelechargementSecurise(urlTelechargement, btnDownload);
+        };
+
+        // 3. 🚀 LE SAINT-GRAAL DU TÉLÉCHARGEMENT AUTOMATIQUE (Anti-Blocage Pop-up)
+        // Au lieu d'un setTimeout qui se fait bloquer par Chrome/Safari, on change la localisation de la fenêtre 
+        // ou on crée un iframe invisible synchrone, ce qui est autorisé par les navigateurs mobiles après un clic.
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = urlTelechargement;
+        document.body.appendChild(iframe);
+        
+        // Nettoyage de l'iframe juste après
+        setTimeout(() => document.body.removeChild(iframe), 2000);
+
+    } catch (error) {
+        console.error("Erreur critique :", error);
+        alert("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
+        btnValider.disabled = false;
+        btnValider.innerText = "Validé";
+    }
+}
+
+// Fonction de téléchargement manuel (si le client clique sur le bouton blanc)
+function declencherTelechargementSecurise(url, boutonElement) {
+    if (boutonElement.classList.contains('downloading')) return;
+
+    boutonElement.classList.add('downloading');
+    boutonElement.disabled = true;
+    const texteOriginal = boutonElement.innerHTML;
+    boutonElement.innerHTML = "⏳ Téléchargement en cours...";
+
+    // Utilisation de la méthode iframe pour le clic manuel aussi (plus stable sur les vieux Android)
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+        setTimeout(() => {
+            boutonElement.innerHTML = texteOriginal;
+            boutonElement.disabled = false;
+            boutonElement.classList.remove('downloading');
+        }, 6000);
+    }, 1000);
+}
