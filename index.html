@@ -2,73 +2,87 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>SHADOW MARKET STORE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHADOW MARKET</title>
     <style>
-        /* --- VISUEL SEULEMENT --- */
+        /* Fond noir pur et design épuré */
         body {
             margin: 0;
             background-color: #000000;
-            /* Motif gaming intégré sans lien externe pour éviter les bugs */
-            background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
-            background-size: 40px 40px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', sans-serif;
         }
 
         .container {
             background: #0d0d0d;
             padding: 40px;
-            border-radius: 16px;
-            border: 2px solid #222;
+            border-radius: 20px;
+            border: 2px solid #1a1a1a;
             width: 320px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
         }
 
-        h2 { color: #00ad9f; text-transform: uppercase; margin-bottom: 25px; }
+        h2 { 
+            color: #00ffeb; /* Vert électrique plus vif */
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+            margin-bottom: 30px; 
+            font-size: 26px;
+        }
 
         input {
             width: 100%;
-            padding: 15px;
-            margin-bottom: 20px;
-            background: #000;
+            padding: 18px;
+            background: #050505;
             border: 1px solid #333;
-            color: #fff;
-            border-radius: 10px;
+            color: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 20px;
             box-sizing: border-box;
             text-align: center;
+            font-size: 16px;
         }
 
         button {
             width: 100%;
-            padding: 15px;
-            background: #00ad9f;
+            padding: 18px;
+            background: #00ffeb; /* Vert électrique plus vif */
             border: none;
-            border-radius: 10px;
-            color: #000;
+            border-radius: 12px;
+            color: #000000;
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
+            transition: 0.3s;
         }
 
-        #msg { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; font-size: 14px; }
-        /* --- FIN VISUEL --- */
+        button:hover { background: #00d4c4; }
+
+        #msg { 
+            margin-top: 25px; 
+            padding: 15px; 
+            border-radius: 10px; 
+            display: none; 
+            font-weight: 600;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h2>SHADOW MARKET</h2>
-        <input type="text" id="code-input" placeholder="ENTREZ VOTRE CODE">
+        <input type="text" id="code-input" placeholder="MET LE CODE ICI">
         <button id="btn" onclick="valider()">VALIDER LE CODE</button>
         <div id="msg"></div>
     </div>
 
     <script>
-        // --- TECHNIQUE INTACTE (NE PAS TOUCHER) ---
+        // --- LOGIQUE TECHNIQUE INTACTE ---
         const SUPA_URL = "https://tckfcaqjvtijeykjhyhq.supabase.co";
         const SUPA_KEY = "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh";
 
@@ -77,8 +91,10 @@
             const msg = document.getElementById('msg');
             const btn = document.getElementById('btn');
             
+            if (!code) return;
+
             btn.disabled = true;
-            btn.innerText = "Vérification...";
+            btn.innerText = "VÉRIFICATION...";
             
             try {
                 const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=lien`, {
@@ -88,24 +104,23 @@
 
                 if (data.length > 0 && data[0].lien) {
                     msg.style.display = "block";
-                    msg.style.background = "#00ad9f";
+                    msg.style.background = "#00ffeb";
                     msg.style.color = "#000";
                     msg.innerHTML = `CODE VALIDE !<br><br><a href="${data[0].lien}" style="color:black; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
                 } else {
                     msg.style.display = "block";
-                    msg.style.background = "#330000";
+                    msg.style.background = "#2a0000";
                     msg.style.color = "#ff4d4d";
-                    msg.innerHTML = "CODE INVALIDE OU PRODUIT NON LIÉ.";
+                    msg.innerHTML = "CODE INVALIDE.";
                 }
             } catch (e) {
                 msg.style.display = "block";
+                msg.style.background = "#2a0000";
                 msg.innerHTML = "ERREUR DE CONNEXION.";
             }
             btn.disabled = false;
             btn.innerText = "VALIDER LE CODE";
         }
-        // --- FIN TECHNIQUE ---
     </script>
 </body>
 </html>
-
