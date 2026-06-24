@@ -3,307 +3,346 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadow Market Store — Vérification</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Shadow Market Store - Récupération de Produit</title>
     <style>
+        :root {
+            --bg-color: #0d1117;
+            --container-bg: #161b22;
+            --accent-color: #58a6ff;
+            --text-color: #c9d1d9;
+            --text-muted: #8b949e;
+            --border-color: #30363d;
+            --success-color: #2ea44f;
+            --btn-hover: #1f75cb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background-color: #0e1118;
-        }
-        .netlify-cyan { color: #00ad9f; }
-        .bg-netlify-cyan { background-color: #00ad9f; }
-        .bg-netlify-cyan:hover { background-color: #008c81; }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.2);
-            border-top: 3px solid #00ad9f;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            display: inline-block;
-            flex-shrink: 0;
-        }
-        @keyframes spin {
-            0%   { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
         }
 
-        #resultZone {
-            transition: opacity 0.25s ease, transform 0.25s ease;
-        }
-        #resultZone.entering {
-            opacity: 0;
-            transform: translateY(6px);
-        }
-        #resultZone.entered {
-            opacity: 1;
-            transform: translateY(0);
+        .container {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
 
-        #keyCode:focus {
-            outline: none;
-            border-color: #00ad9f;
-            box-shadow: 0 0 0 3px rgba(0,173,159,0.18);
+        h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .instruction-box {
+            background-color: rgba(88, 166, 255, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .instruction-box strong {
+            color: var(--accent-color);
+        }
+
+        .product-card {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .product-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+
+        .code-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .code-display {
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            font-family: monospace;
+            font-size: 16px;
+            border-radius: 4px;
+            flex-grow: 1;
+            color: #58a6ff;
+            letter-spacing: 1px;
+            user-select: all;
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: background-color 0.2s, opacity 0.2s;
+            border: none;
+        }
+
+        .btn-copy {
+            background-color: #21262d;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+
+        .btn-copy:hover {
+            background-color: #30363d;
+            color: #ffffff;
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background-color: var(--success-color);
+            color: #ffffff;
+            padding: 12px 20px;
+            font-size: 16px;
+            text-decoration: none;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .btn-download:hover {
+            background-color: #2c974b;
+        }
+
+        .btn-download:disabled, .btn-copy:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .loading-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 20px;
         }
     </style>
 </head>
-<body class="text-white font-sans min-h-screen flex flex-col justify-between">
+<body>
 
-    <header class="border-b border-gray-800 bg-[#141923] px-6 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold tracking-wide">
-            SHADOW <span class="netlify-cyan">MARKET STORE</span>
-        </h1>
-        <span class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full border border-gray-700">
-            v3.1 · Anti-Refresh Fixed
-        </span>
-    </header>
-
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div class="bg-[#141923] border border-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl">
-
-            <h2 class="text-2xl font-bold mb-2 text-center">Vérification de votre clé</h2>
-            <p class="text-gray-400 text-sm text-center mb-6">
-                Entrez le code reçu lors de votre achat pour récupérer votre produit.
-            </p>
-
-            <form id="verifyForm" onsubmit="handleSubmit(event)" novalidate autocomplete="off">
-                <div class="space-y-4">
-                    <div>
-                        <label for="keyCode"
-                               class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                            Code d'accès
-                        </label>
-                        <input
-                            type="text"
-                            id="keyCode"
-                            name="keyCode"
-                            placeholder="Ex: SHDx9079IP"
-                            maxlength="60"
-                            autocomplete="off"
-                            autocorrect="off"
-                            autocapitalize="none"
-                            spellcheck="false"
-                            class="w-full bg-[#0e1118] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-600 transition-colors"
-                        />
-                    </div>
-
-                    <button
-                        id="btnVerify"
-                        type="submit"
-                        class="w-full bg-netlify-cyan text-black font-bold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-                    >
-                        <span id="btnLabel">Vérifier et Télécharger</span>
-                    </button>
-                </div>
-            </form>
-
-            <div id="statusZone" class="mt-4 text-center text-sm min-h-[28px]"></div>
-
-            <div id="resultZone" class="mt-6 hidden p-4 rounded-lg border">
-                <p id="resultTitle"   class="font-bold text-lg mb-1"></p>
-                <p id="resultMessage" class="text-sm text-gray-400 mb-4"></p>
-                <a id="downloadBtn"
-                   href="#"
-                   onclick="executerTelechargement(event)"
-                   class="hidden inline-flex items-center justify-center w-full bg-white text-black font-bold py-2 px-4 rounded-md hover:bg-gray-200 transition-colors">
-                    ⬇ Télécharger le produit
-                </a>
-            </div>
-
+    <div class="container">
+        <h1>🎁 Vos produits sont prêts !</h1>
+        
+        <div class="instruction-box">
+            <strong>Instructions importantes :</strong><br>
+            1. Copiez d'abord votre code unique ci-dessous.<br>
+            2. Cliquez sur le bouton de téléchargement pour obtenir votre produit.<br>
+            3. Entrez votre code si l'application ou le pack vous le demande à l'installation.<br>
+            <em>Si vous fermez cette page, conservez précieusement vos codes.</em>
         </div>
-    </main>
 
-    <footer class="border-t border-gray-800 bg-[#0e1118] text-center py-4 text-xs text-gray-500">
-        &copy; 2026 Shadow Market Store. Tous droits réservés.
-    </footer>
+        <div id="products-list">
+            <div class="loading-text">Chargement de vos accès sécurisés...</div>
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <div class="footer">
+            Shadow Market Store © 2026 — Paiement sécurisé et accès instantané
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Code copié dans le presse-papiers !</div>
 
     <script>
-        'use strict';
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2500);
+        }
 
-        /* ── CONFIG SUPABASE ──────────────────────────────────── */
-        const SUPABASE_URL = 'https://tckfcaqjvtijeykjhyhq.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh';
-
-        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        /* ── REFS DOM ─────────────────────────────────────────── */
-        const keyInput    = document.getElementById('keyCode');
-        const btnVerify   = document.getElementById('btnVerify');
-        const btnLabel    = document.getElementById('btnLabel');
-        const statusZone  = document.getElementById('statusZone');
-        const resultZone  = document.getElementById('resultZone');
-        const resultTitle = document.getElementById('resultTitle');
-        const resultMsg   = document.getElementById('resultMessage');
-        const downloadBtn = document.getElementById('downloadBtn');
-
-        let urlTelechargementActive = '#';
-
-        /* ── HELPERS UI ────────────────────────────────────────── */
-        keyInput.addEventListener('input', () => {
-            const pos     = keyInput.selectionStart;
-            const cleaned = keyInput.value.replace(/\s/g, '');
-            if (cleaned !== keyInput.value) {
-                keyInput.value = cleaned;
-                try { keyInput.setSelectionRange(pos, pos); } catch (_) {}
+        function copyCode(elementId, button) {
+            const target = document.getElementById(elementId);
+            const codeText = target.innerText;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(codeText).then(() => {
+                    triggerCopySuccess(button);
+                }).catch(() => {
+                    fallbackCopy(target, button);
+                });
+            } else {
+                fallbackCopy(target, button);
             }
+        }
+
+        function fallbackCopy(targetElement, button) {
+            try {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(targetElement);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                document.execCommand('copy');
+                selection.removeAllRanges();
+                triggerCopySuccess(button);
+            } catch (err) {
+                showToast("⚠️ Veuillez copier le code manuellement.");
+            }
+        }
+
+        function triggerCopySuccess(button) {
+            const originalText = button.innerText;
+            button.innerText = "✓ Copié";
+            button.disabled = true;
+            showToast("Code copié dans le presse-papiers !");
+            setTimeout(() => {
+                button.innerText = originalText;
+                button.disabled = false;
+            }, 2000);
+        }
+
+        function handleDownload(downloadUrl, button) {
+            if (button.classList.contains('downloading')) return;
+            
+            button.classList.add('downloading');
+            button.disabled = true;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = "⏳ Téléchargement en cours (Vérifiez vos fichiers)...";
+
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.setAttribute('download', '');
+            link.target = "_blank"; 
+            document.body.appendChild(link);
+            
+            setTimeout(() => {
+                link.click();
+                document.body.removeChild(link);
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    button.classList.remove('downloading');
+                }, 8000);
+            }, 800);
+        }
+
+        function afficherProduitsAchetes(listeProduits) {
+            const container = document.getElementById('products-list');
+            container.innerHTML = ''; 
+
+            if(listeProduits.length === 0) {
+                container.innerHTML = '<div class="loading-text">Aucun produit trouvé. Contactez le support.</div>';
+                return;
+            }
+
+            listeProduits.forEach((prod, index) => {
+                const idUnique = index + 1;
+                
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                const title = document.createElement('div');
+                title.className = 'product-title';
+                title.innerText = prod.nom; 
+                
+                const codeContainer = document.createElement('div');
+                codeContainer.className = 'code-container';
+                
+                const codeDisplay = document.createElement('div');
+                codeDisplay.className = 'code-display';
+                // IDs préfixés par 'shdw-' pour isolation complète
+                codeDisplay.id = `shdw-code-${idUnique}`;
+                codeDisplay.innerText = prod.code; 
+                
+                const btnCopy = document.createElement('button');
+                btnCopy.className = 'btn-copy';
+                btnCopy.innerText = 'Copier';
+                btnCopy.addEventListener('click', () => copyCode(`shdw-code-${idUnique}`, btnCopy));
+                
+                const btnDownload = document.createElement('button');
+                btnDownload.className = 'btn-download';
+                btnDownload.id = `shdw-dl-${idUnique}`;
+                btnDownload.innerHTML = '📥 Télécharger le produit';
+                btnDownload.addEventListener('click', () => handleDownload(prod.lien, btnDownload));
+                
+                codeContainer.appendChild(codeDisplay);
+                codeContainer.appendChild(btnCopy);
+                card.appendChild(title);
+                card.appendChild(codeContainer);
+                card.appendChild(btnDownload);
+                
+                container.appendChild(card);
+            });
+        }
+
+        window.addEventListener('pageshow', (event) => {
+            const buttons = document.querySelectorAll('.btn-download');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('downloading');
+                btn.innerHTML = '📥 Télécharger le produit';
+            });
         });
 
-        function setLoading(on) {
-            btnVerify.disabled = on;
-            if (on) {
-                btnLabel.textContent = 'Recherche en cours…';
-                const existing = btnVerify.querySelector('.spinner');
-                if (!existing) {
-                    const s = document.createElement('div');
-                    s.className = 'spinner';
-                    btnVerify.insertBefore(s, btnLabel);
-                }
-                statusZone.innerHTML = '';
-            } else {
-                const s = btnVerify.querySelector('.spinner');
-                if (s) s.remove();
-            }
-        }
-
-        function resetBtn(label = 'Vérifier et Télécharger') {
-            btnLabel.textContent = label;
-            setLoading(false);
-            btnVerify.disabled = false;
-        }
-
-        function afficherResultat({ succes, titre, message, url }) {
-            statusZone.innerHTML = '';
-            resultZone.classList.add('entering');
-            resultZone.classList.remove('hidden');
-
-            void resultZone.offsetWidth;
-            resultZone.classList.add('entered');
-            resultZone.classList.remove('entering');
-
-            if (succes) {
-                resultZone.className = 'mt-6 p-4 rounded-lg border bg-green-950/50 border-green-800 transition-all duration-300';
-                resultTitle.textContent  = titre;
-                resultTitle.className    = 'font-bold text-lg text-green-400 mb-1';
-                resultMsg.textContent    = message;
-                
-                // Stockage sécurisé de l'URL dans notre variable globale
-                urlTelechargementActive = url || '#';
-                downloadBtn.classList.remove('hidden');
-            } else {
-                resultZone.className = 'mt-6 p-4 rounded-lg border bg-red-950/50 border-red-800 transition-all duration-300';
-                resultTitle.textContent  = titre;
-                resultTitle.className    = 'font-bold text-lg text-red-400 mb-1';
-                resultMsg.textContent    = message;
-                urlTelechargementActive = '#';
-                downloadBtn.classList.add('hidden');
-            }
-        }
-
-        /* ── ACTION DE TÉLÉCHARGEMENT SÉCURISÉE ────────────────── */
-        function executerTelechargement(event) {
-            event.preventDefault(); // Bloque STRICTEMENT le rechargement de la page actuelle
+        // Simulation de test automatique
+        window.addEventListener('DOMContentLoaded', () => {
+            const panierSimule = [
+                { nom: "Shadow Input Premium", code: "SDW-PREM-883A-91Xz", lien: "https://votre-lien-storage-public.com/shadow_input_prem.zip" },
+                { nom: "Shadow Débloque", code: "SDW-DBLQ-441P-00LL", lien: "https://votre-lien-storage-public.com/shadow_debloque.zip" }
+            ];
             
-            if (!urlTelechargementActive || urlTelechargementActive === '#') {
-                alert("Erreur : Aucun lien de téléchargement valide n'est configuré pour ce produit.");
-                return;
-            }
-            
-            // Ouvre proprement le lien dans un nouvel onglet de manière sécurisée
-            window.open(urlTelechargementActive, '_blank', 'noopener,noreferrer');
-        }
-
-        /* ── INTERCEPTION DU FORMULAIRE ───────────────────────── */
-        async function handleSubmit(event) {
-            event.preventDefault();
-
-            const code = keyInput.value.trim();
-
-            if (!code) {
-                statusZone.innerHTML = "<span class='text-orange-400'>⚠ Veuillez saisir un code.</span>";
-                keyInput.focus();
-                return;
-            }
-
-            if (code.length < 4) {
-                statusZone.innerHTML = "<span class='text-orange-400'>⚠ Code trop court.</span>";
-                keyInput.focus();
-                return;
-            }
-
-            if (!/^[a-zA-Z0-9\-]+$/.test(code)) {
-                statusZone.innerHTML = "<span class='text-orange-400'>⚠ Code contient des caractères non valides.</span>";
-                keyInput.focus();
-                return;
-            }
-
-            resultZone.classList.add('hidden');
-            resultZone.classList.remove('entered');
-            downloadBtn.classList.add('hidden');
-
-            setLoading(true);
-
-            try {
-                const { data, error } = await db
-                    .from('codes')
-                    .select(`
-                        code_unique,
-                        est_utilise,
-                        produits (
-                            id,
-                            lien_telechargement
-                        )
-                    `)
-                    .eq('code_unique', code)
-                    .maybeSingle();
-
-                if (error) {
-                    console.error('[ShadowMarket] Erreur Supabase :', error.message);
-                    afficherResultat({
-                        succes:  false,
-                        titre:   'Erreur de connexion',
-                        message: 'Erreur technique lors de la lecture. Contactez le support.',
-                    });
-                    resetBtn();
-                    return;
-                }
-
-                if (!data) {
-                    afficherResultat({
-                        succes:  false,
-                        titre:   'Code invalide',
-                        message: 'Ce code n\'existe pas dans notre base de données. Vérifiez votre saisie.',
-                    });
-                    keyInput.classList.add('border-red-600');
-                    resetBtn();
-                    return;
-                }
-
-                const produitConcerne = data.produits;
-                const lienFinal = produitConcerne ? produitConcerne.lien_telechargement : null;
-
-                keyInput.classList.remove('border-red-600');
-                
-                afficherResultat({
-                    succes:  true,
-                    titre:   '✓ Code validé !',
-                    message: 'Votre pack d\'optimisation est prêt.',
-                    url:     lienFinal,
-                });
-                resetBtn('✓ Validé');
-                btnVerify.disabled = true;
-
-            } catch (err) {
-                console.error('[ShadowMarket] Exception générale :', err);
-                afficherResultat({
-                    succes:  false,
-                    titre:   'Erreur inattendue',
-                    message: 'Une erreur s\'est produite. Veuillez réessayer.',
-                });
-                resetBtn();
-            }
-        }
+            setTimeout(() => {
+                afficherProduitsAchetes(panierSimule);
+            }, 500);
+        });
     </script>
 </body>
 </html>
