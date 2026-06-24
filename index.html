@@ -3,76 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHADOW MARKET STORE</title>
+    <title>SHADOW MARKET</title>
     <style>
-        :root { 
-            --bg-color: #000000; 
-            --container-bg: #0d0d0d; 
-            --accent-color: #00ad9f; 
-            --text-color: #ffffff;
-            --border-color: #333333;
-        }
-        
-        body { 
-            background-color: var(--bg-color); 
-            /* Utilisation de ton motif de manettes en blanc pur */
-            background-image: url('https://i.imgur.com/vHqR8kU.png'); /* Remplace par le lien direct de ton image */
-            background-repeat: repeat;
-            background-size: 200px; /* Ajuste la taille selon ton besoin */
-            color: var(--text-color); 
-            font-family: 'Segoe UI', sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
+        /* Design sombre et professionnel */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            background-image: radial-gradient(circle, #111111 1px, transparent 1px);
+            background-size: 30px 30px; /* Le motif "gaming" intégré sans image externe */
+            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        .container { 
-            background: var(--container-bg); 
-            padding: 40px; 
-            border-radius: 16px; 
-            border: 2px solid var(--border-color); 
-            width: 320px; 
-            text-align: center; 
-            box-shadow: 0 0 20px rgba(255,255,255,0.1);
-        }
-
-        h2 { text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; font-size: 24px; color: var(--text-color); }
-
-        input { 
-            width: 100%; 
-            padding: 15px; 
-            background: #000; 
-            border: 1px solid var(--border-color); 
-            color: white; 
-            border-radius: 8px; 
-            margin-bottom: 20px; 
-            box-sizing: border-box;
-            outline: none;
+        .container {
+            background: #0d0d0d;
+            padding: 40px;
+            border: 2px solid #222222;
+            border-radius: 20px;
+            width: 350px;
             text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
         }
 
-        button { 
-            width: 100%; 
-            padding: 15px; 
-            background: var(--accent-color); 
-            border: none; 
-            border-radius: 8px; 
-            color: black; 
-            font-weight: bold; 
-            cursor: pointer; 
+        h2 { font-size: 28px; margin-bottom: 30px; letter-spacing: 3px; color: #00ad9f; }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #00ad9f;
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: bold;
             text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
         }
 
-        #msg { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; font-size: 14px; }
+        button:hover { background: #008f83; }
+
+        #msg { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; font-weight: 500; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h2>SHADOW MARKET</h2>
-        <input type="text" id="code-input" placeholder="Entrez votre code...">
+        <input type="text" id="code-input" placeholder="ENTREZ VOTRE CODE">
         <button id="btn" onclick="valider()">Valider le code</button>
         <div id="msg"></div>
     </div>
@@ -89,7 +84,7 @@
             if (!code) return;
 
             btn.disabled = true;
-            btn.innerText = "Vérification...";
+            btn.innerText = "VÉRIFICATION...";
             
             try {
                 const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=lien`, {
@@ -99,17 +94,19 @@
 
                 if (data.length > 0 && data[0].lien) {
                     msg.style.display = "block";
-                    msg.style.background = "#21a283";
-                    msg.innerHTML = `Code valide !<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold; text-decoration:none;">TÉLÉCHARGER LE PRODUIT</a>`;
+                    msg.style.background = "#00ad9f";
+                    msg.style.color = "#000";
+                    msg.innerHTML = `CODE VALIDE !<br><br><a href="${data[0].lien}" style="color:black; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
                 } else {
                     msg.style.display = "block";
-                    msg.style.background = "#ff4d4d";
-                    msg.innerHTML = "Code invalide ou produit non lié.";
+                    msg.style.background = "#330000";
+                    msg.style.color = "#ff4d4d";
+                    msg.innerHTML = "CODE INVALIDE OU PRODUIT NON LIÉ.";
                 }
             } catch (e) {
                 msg.style.display = "block";
-                msg.style.background = "#ff4d4d";
-                msg.innerHTML = "Erreur de connexion.";
+                msg.style.background = "#330000";
+                msg.innerHTML = "ERREUR DE CONNEXION.";
             }
             btn.disabled = false;
             btn.innerText = "Valider le code";
@@ -117,4 +114,3 @@
     </script>
 </body>
 </html>
-
