@@ -54,7 +54,7 @@
             SHADOW <span class="netlify-cyan">MARKET STORE</span>
         </h1>
         <span class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full border border-gray-700">
-            v2.2 · Supabase Stabilized
+            v2.3 · Supabase Native
         </span>
     </header>
 
@@ -130,7 +130,6 @@
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         /* ── REFS DOM ─────────────────────────────────────────── */
-        const form        = document.getElementById('verifyForm');
         const keyInput    = document.getElementById('keyCode');
         const btnVerify   = document.getElementById('btnVerify');
         const btnLabel    = document.getElementById('btnLabel');
@@ -198,10 +197,9 @@
             }
         }
 
-        /* ── INTERCEPTION DU FORMULAIRE ───────────────────────── */
+        /* ── SOU MISSION DU FORMULAIRE ────────────────────────── */
         async function handleSubmit(event) {
             event.preventDefault();
-            event.stopPropagation();
 
             const code = keyInput.value.trim();
 
@@ -230,20 +228,12 @@
             setLoading(true);
 
             try {
-                const controller = new AbortController();
-                const timeoutId  = setTimeout(() => controller.abort(), 8000);
-
-                /* CORRECTION SÉCURISÉE :
-                   Remplacement du .ilike() par .eq() pour éviter le plantage SQL 
-                   et correspondre exactement au format de ta table 'codes'.
-                */
+                /* REQUÊTE DIRECTE SANS ABORTCONTROLLER RESTRICITF */
                 const { data, error } = await db
                     .from('codes')
                     .select('code_unique, lien_telechargement, produit_id')
                     .eq('code_unique', code)
                     .maybeSingle();
-
-                clearTimeout(timeoutId);
 
                 if (error) {
                     console.error('[ShadowMarket] Erreur Supabase :', error.message);
@@ -267,7 +257,7 @@
                     return;
                 }
 
-                // ✅ Code valide
+                // ✅ Succès
                 keyInput.classList.remove('border-red-600');
                 afficherResultat({
                     succes:  true,
@@ -279,14 +269,11 @@
                 btnVerify.disabled = true;
 
             } catch (err) {
-                const isTimeout = err.name === 'AbortError';
                 console.error('[ShadowMarket] Exception :', err);
                 afficherResultat({
                     succes:  false,
-                    titre:   isTimeout ? 'Délai dépassé' : 'Erreur inattendue',
-                    message: isTimeout
-                        ? 'Le serveur met trop de temps à répondre. Réessayez dans quelques instants.'
-                        : 'Une erreur inattendue s\'est produite. Rechargez la page et réessayez.',
+                    titre:   'Erreur inattendue',
+                    message: 'Une erreur s\'est produite lors de la validation. Veuillez réessayer.',
                 });
                 resetBtn();
             }
@@ -294,3 +281,4 @@
     </script>
 </body>
 </html>
+
