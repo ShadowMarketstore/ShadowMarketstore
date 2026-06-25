@@ -106,35 +106,36 @@
             btn.innerText = "VÉRIFICATION...";
             
             try {
-                // 1. Vérification : le code doit exister ET ne pas avoir été utilisé (est_utilise = false)
-                const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&est_utilise=eq.false&select=id,lien`, {
+                // 1. Récupérer les infos du code
+                const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=id,lien,est_utilise`, {
                     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                 });
                 const data = await res.json();
 
-                if (data.length > 0 && data[0].lien) {
-                    // 2. Mise à jour : on marque le code comme utilisé (true)
+                // 2. Vérification rigoureuse : existe-t-il ? est-il déjà utilisé ?
+                if (data.length === 0 || data[0].est_utilise === true) {
+                    msg.style.display = "block";
+                    msg.style.color = "#ff4d4d";
+                    msg.style.borderColor = "#ff4d4d";
+                    msg.innerHTML = "CODE INVALIDE OU DÉJÀ UTILISÉ.";
+                } else {
+                    // 3. Le code est bon, on le marque comme utilisé (true)
                     await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${data[0].id}`, {
                         method: 'PATCH',
                         headers: { 
                             'apikey': SUPA_KEY, 
                             'Authorization': `Bearer ${SUPA_KEY}`,
-                            'Content-Type': 'application/json' 
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
                         },
                         body: JSON.stringify({ est_utilise: true })
                     });
 
-                    // 3. Succès
+                    // 4. Succès
                     msg.style.display = "block";
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
                     msg.innerHTML = `CODE VALIDE !<br><br>Merci de nous avoir fait confiance. Vous ne le regretterez pas !<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
-                } else {
-                    // Code inexistant ou déjà utilisé
-                    msg.style.display = "block";
-                    msg.style.color = "#ff4d4d";
-                    msg.style.borderColor = "#ff4d4d";
-                    msg.innerHTML = "CODE INVALIDE OU DÉJÀ UTILISÉ.";
                 }
             } catch (e) {
                 msg.style.display = "block";
@@ -147,3 +148,4 @@
     </script>
 </body>
 </html>
+
