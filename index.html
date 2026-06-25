@@ -106,20 +106,20 @@
             btn.innerText = "VÉRIFICATION...";
             
             try {
-                // 1. Récupérer les infos du code
+                // 1. Appel direct à la table 'codes' pour vérification
                 const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=id,lien,est_utilise`, {
                     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                 });
                 const data = await res.json();
 
-                // 2. Vérification rigoureuse : existe-t-il ? est-il déjà utilisé ?
+                // 2. Vérification : existe-t-il ? a-t-il déjà été utilisé ?
                 if (data.length === 0 || data[0].est_utilise === true) {
                     msg.style.display = "block";
                     msg.style.color = "#ff4d4d";
                     msg.style.borderColor = "#ff4d4d";
                     msg.innerHTML = "CODE INVALIDE OU DÉJÀ UTILISÉ.";
                 } else {
-                    // 3. Le code est bon, on le marque comme utilisé (true)
+                    // 3. Mise à jour de la table 'codes' : on verrouille le code (true)
                     await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${data[0].id}`, {
                         method: 'PATCH',
                         headers: { 
@@ -131,7 +131,7 @@
                         body: JSON.stringify({ est_utilise: true })
                     });
 
-                    // 4. Succès
+                    // 4. Succès : affichage du lien
                     msg.style.display = "block";
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
