@@ -102,8 +102,6 @@
             transition: 0.3s;
             text-align: center;
             cursor: pointer;
-            border: none;
-            font-family: inherit;
         }
 
         .dl-prod {
@@ -114,6 +112,16 @@
 
         .dl-prod:hover {
             box-shadow: 0 0 15px #00ffeb;
+        }
+
+        .dl-notice {
+            background: transparent;
+            color: #00ffeb;
+            border: 1px solid #00ffeb;
+        }
+
+        .dl-notice:hover {
+            background: rgba(0, 255, 235, 0.1);
         }
     </style>
 </head>
@@ -130,27 +138,6 @@
     <script>
         const SUPA_URL = "https://tckfcaqjvtijeykjhyhq.supabase.co";
         const SUPA_KEY = "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh";
-
-        // La nouvelle fonction de téléchargement forcé
-        function telechargerPack(lienProduit, lienNotice) {
-            // Création d'un faux lien caché pour la Notice
-            const linkNotice = document.createElement('a');
-            linkNotice.href = lienNotice;
-            linkNotice.target = '_blank';
-            document.body.appendChild(linkNotice);
-            linkNotice.click(); // Simule un clic humain
-            document.body.removeChild(linkNotice);
-
-            // On attend 1.5 seconde (1500ms) pour tromper la sécurité du navigateur, puis on lance le Produit
-            setTimeout(() => {
-                const linkProd = document.createElement('a');
-                linkProd.href = lienProduit;
-                linkProd.target = '_blank';
-                document.body.appendChild(linkProd);
-                linkProd.click(); // Simule un 2ème clic humain
-                document.body.removeChild(linkProd);
-            }, 1500); 
-        }
 
         async function valider() {
             const code = document.getElementById('code-input').value.trim();
@@ -184,8 +171,8 @@
                         throw new Error("ERREUR : Ce code n'est rattaché à aucun ID de produit.");
                     }
 
-                    // 2. Récupération du produit
-                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=nom_produit,lien_telechargement,lien_notice`, {
+                    // 2. Récupération du produit lié (plus besoin d'interroger lien_notice)
+                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=nom_produit,lien_telechargement`, {
                         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                     });
                     const dataProd = await resProd.json();
@@ -200,7 +187,10 @@
                         throw new Error("ERREUR : Le lien de téléchargement est vide.");
                     }
 
+                    // On encode le lien du produit pour qu'il soit propre
                     const lienScript = encodeURI(prod.lien_telechargement.trim());
+                    
+                    // ON MET LA NOTICE EN DUR ICI (Ton lien direct)
                     const lienNotice = "https://tckfcaqjvtijeykjhyhq.supabase.co/storage/v1/object/public/coffre_fort/SHADOW_APEX%20LEGENDS%20PREMIUM%20!/NOTICE.zip";
 
                     // 3. Verrouillage du code
@@ -215,7 +205,7 @@
                         body: JSON.stringify({ est_utilise: true })
                     });
 
-                    // 4. Affichage du bouton UNIQUE
+                    // 4. Affichage des deux boutons distincts
                     msg.style.display = "block";
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
@@ -224,12 +214,8 @@
                         CODE VALIDE !<br><br>
                         Merci de nous avoir fait confiance. Vous ne le regretterez pas !
                         <div class="action-buttons">
-                            <button onclick="telechargerPack('${lienScript}', '${lienNotice}')" class="dl-btn dl-prod">
-                                TÉLÉCHARGER LE PACK COMPLET
-                            </button>
-                        </div>
-                        <div style="color: #888; font-size: 11px; margin-top: 10px; font-weight: normal;">
-                            (Si le produit ne se télécharge pas, vérifiez que votre navigateur ne bloque pas les pop-ups).
+                            <a href="${lienScript}" class="dl-btn dl-prod" target="_blank">TÉLÉCHARGER LE PRODUIT</a>
+                            <a href="${lienNotice}" class="dl-btn dl-notice" target="_blank">TÉLÉCHARGER LA NOTICE</a>
                         </div>
                     `;
                 }
