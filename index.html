@@ -174,7 +174,7 @@
                     }
 
                     // 2. Récupération du produit lié
-                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=nom_produit,lien_telechargement,lien_notice`, {
+                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=nom_produit,lien_telechargement`, {
                         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                     });
                     const dataProd = await resProd.json();
@@ -201,17 +201,11 @@
                         return;
                     }
 
-                    // --- ENCODAGE SÉCURISÉ ET RESTRUCTURATION DES LIENS ---
-                    // encodeURI traduit proprement les espaces et caractères spéciaux pour le navigateur
+                    // Encodage propre du lien du produit
                     const lienScript = encodeURI(prod.lien_telechargement.trim());
                     
-                    let lienNotice = "";
-                    if (prod.lien_notice && prod.lien_notice.trim() !== "") {
-                        lienNotice = encodeURI(prod.lien_notice.trim());
-                    } else {
-                        // Génération automatique si la colonne en base de données est vide
-                        lienNotice = encodeURI(`${SUPA_URL}/storage/v1/object/public/coffre_fort/${prod.nom_produit.trim()}/NOTICE.txt.zip`);
-                    }
+                    // LIEN UNIQUE ET UNIVERSEL POUR LA NOTICE (Placée à la racine du bucket coffre_fort)
+                    const lienNotice = `${SUPA_URL}/storage/v1/object/public/coffre_fort/NOTICE.txt.zip`;
 
                     // 3. Verrouillage du code uniquement si tout s'est bien passé
                     await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${idCode}`, {
