@@ -78,9 +78,9 @@
             font-weight: 600;
             font-size: 14px;
             border: 1px solid currentColor;
+            word-wrap: break-word;
         }
 
-        /* --- NOUVEAUX STYLES POUR LES BOUTONS DE TÉLÉCHARGEMENT --- */
         .action-buttons {
             display: flex;
             flex-direction: column;
@@ -99,6 +99,7 @@
             text-transform: uppercase;
             box-sizing: border-box;
             transition: 0.3s;
+            cursor: pointer;
         }
 
         .dl-prod {
@@ -145,10 +146,11 @@
 
             btn.disabled = true;
             btn.innerText = "VÉRIFICATION...";
+            msg.style.display = "none"; // Réinitialise l'affichage à chaque essai
             
             try {
-                // 1. Appel à la table 'codes' pour récupérer l'état et l'ID du produit lié
-                const resCode = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=id,produit_id,est_utilise`, {
+                // 1. Appel à la table 'codes' (On récupère TOUTES les colonnes pour trouver la liaison)
+                const resCode = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=*`, {
                     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                 });
                 const dataCode = await resCode.json();
@@ -161,19 +163,47 @@
                     msg.innerHTML = "CODE INVALIDE OU DÉJÀ UTILISÉ.";
                 } else {
                     const idCode = dataCode[0].id;
-                    const idProduit = dataCode[0].produit_id;
+                    
+                    // 3. Identification de la liaison avec le produit (via l'ID ou le nom)
+                    let paramRecherche = "";
+                    if (dataCode[0].produit_id) {
+                        paramRecherche = `id=eq.${dataCode[0].produit_id}`;
+                    } else if (dataCode[0].nom_produit) {
+                        paramRecherche = `nom_produit=eq.${encodeURIComponent(dataCode[0].nom_produit)}`;
+                    }
 
-                    // 3. Appel à la table 'produits' pour récupérer les deux liens
-                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=lien_telechargement,lien_notice`, {
+                    // Sécurité : Si on ne sait pas à quel produit correspond le code
+                    if (paramRecherche === "") {
+                        msg.style.display = "block";
+                        msg.style.color = "#ffcc00"; // Jaune pour avertissement technique
+                        msg.style.borderColor = "#ffcc00";
+                        msg.innerHTML = "ERREUR SYSTÈME : Ce code n'est lié à aucun produit dans la table 'codes'. (Il manque 'nom_produit' ou 'produit_id').";
+                        btn.disabled = false;
+                        btn.innerText = "VALIDER LE CODE";
+                        return; // Arrête l'exécution ici, le code n'est pas grillé
+                    }
+
+                    // 4. Appel à la table 'produits' avec le paramètre trouvé
+                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?${paramRecherche}&select=lien_telechargement,lien_notice`, {
                         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                     });
                     const dataProd = await resProd.json();
                     
-                    // Sécurité au cas où un lien serait vide
-                    const lienScript = (dataProd.length > 0 && dataProd[0].lien_telechargement) ? dataProd[0].lien_telechargement : "#";
-                    const lienNotice = (dataProd.length > 0 && dataProd[0].lien_notice) ? dataProd[0].lien_notice : "#";
+                    // Sécurité : Si le produit n'existe pas ou n'a pas de liens générés
+                    if (dataProd.length === 0 || !dataProd[0].lien_telechargement) {
+                        msg.style.display = "block";
+                        msg.style.color = "#ffcc00";
+                        msg.style.borderColor = "#ffcc00";
+                        msg.innerHTML = "ERREUR SYSTÈME : Impossible de trouver les fichiers pour ce produit. Vérifiez votre base de données.";
+                        btn.disabled = false;
+                        btn.innerText = "VALIDER LE CODE";
+                        return; // Arrête l'exécution, le code n'est pas grillé
+                    }
 
-                    // 4. Mise à jour de la table 'codes' : on verrouille le code (true)
+                    const lienScript = dataProd[0].lien_telechargement;
+                    const lienNotice = dataProd[0].lien_notice;
+
+                    // 5. Mise à jour de la table 'codes' : on verrouille le code de manière définitive
                     await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${idCode}`, {
                         method: 'PATCH',
                         headers: { 
@@ -185,7 +215,7 @@
                         body: JSON.stringify({ est_utilise: true })
                     });
 
-                    // 5. Succès : affichage des deux boutons de téléchargement
+                    // 6. Succès total : affichage des vrais boutons qui pointent vers tes fichiers
                     msg.style.display = "block";
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
@@ -202,7 +232,7 @@
                 msg.style.display = "block";
                 msg.style.color = "#ff4d4d";
                 msg.style.borderColor = "#ff4d4d";
-                msg.innerHTML = "ERREUR DE CONNEXION.";
+                msg.innerHTML = "ERREUR DE CONNEXION. VEUILLEZ RÉESSAYER.";
             }
             btn.disabled = false;
             btn.innerText = "VALIDER LE CODE";
