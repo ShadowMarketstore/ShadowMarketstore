@@ -99,7 +99,6 @@
             text-transform: uppercase;
             box-sizing: border-box;
             transition: 0.3s;
-            cursor: pointer;
         }
 
         .dl-prod {
@@ -146,16 +145,15 @@
 
             btn.disabled = true;
             btn.innerText = "VÉRIFICATION...";
-            msg.style.display = "none"; // Réinitialise l'affichage à chaque essai
+            msg.style.display = "none";
             
             try {
-                // 1. Appel à la table 'codes' (On récupère TOUTES les colonnes pour trouver la liaison)
+                // 1. Récupération du code
                 const resCode = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=*`, {
                     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                 });
                 const dataCode = await resCode.json();
 
-                // 2. Vérification : le code existe-t-il et est-il inutilisé ?
                 if (dataCode.length === 0 || dataCode[0].est_utilise === true) {
                     msg.style.display = "block";
                     msg.style.color = "#ff4d4d";
@@ -163,47 +161,52 @@
                     msg.innerHTML = "CODE INVALIDE OU DÉJÀ UTILISÉ.";
                 } else {
                     const idCode = dataCode[0].id;
-                    
-                    // 3. Identification de la liaison avec le produit (via l'ID ou le nom)
-                    let paramRecherche = "";
-                    if (dataCode[0].produit_id) {
-                        paramRecherche = `id=eq.${dataCode[0].produit_id}`;
-                    } else if (dataCode[0].nom_produit) {
-                        paramRecherche = `nom_produit=eq.${encodeURIComponent(dataCode[0].nom_produit)}`;
-                    }
+                    const idProduit = dataCode[0].produit_id;
 
-                    // Sécurité : Si on ne sait pas à quel produit correspond le code
-                    if (paramRecherche === "") {
+                    if (!idProduit) {
                         msg.style.display = "block";
-                        msg.style.color = "#ffcc00"; // Jaune pour avertissement technique
+                        msg.style.color = "#ffcc00";
                         msg.style.borderColor = "#ffcc00";
-                        msg.innerHTML = "ERREUR SYSTÈME : Ce code n'est lié à aucun produit dans la table 'codes'. (Il manque 'nom_produit' ou 'produit_id').";
+                        msg.innerHTML = `ERREUR DIAGNOSTIC : Ce code en base de données n'est rattaché à aucun ID de produit (la colonne produit_id est vide).`;
                         btn.disabled = false;
                         btn.innerText = "VALIDER LE CODE";
-                        return; // Arrête l'exécution ici, le code n'est pas grillé
+                        return;
                     }
 
-                    // 4. Appel à la table 'produits' avec le paramètre trouvé
-                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?${paramRecherche}&select=lien_telechargement,lien_notice`, {
+                    // 2. Récupération du produit lié
+                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=nom_produit,lien_telechargement,lien_notice`, {
                         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                     });
                     const dataProd = await resProd.json();
                     
-                    // Sécurité : Si le produit n'existe pas ou n'a pas de liens générés
-                    if (dataProd.length === 0 || !dataProd[0].lien_telechargement) {
+                    // CAS 1 : Le produit ID 53 n'existe pas du tout dans la table produits
+                    if (dataProd.length === 0) {
                         msg.style.display = "block";
                         msg.style.color = "#ffcc00";
                         msg.style.borderColor = "#ffcc00";
-                        msg.innerHTML = "ERREUR SYSTÈME : Impossible de trouver les fichiers pour ce produit. Vérifiez votre base de données.";
+                        msg.innerHTML = `ERREUR DIAGNOSTIC : Le code demande le produit ID "${idProduit}", mais cet ID n'existe pas dans ta table 'produits'.`;
                         btn.disabled = false;
                         btn.innerText = "VALIDER LE CODE";
-                        return; // Arrête l'exécution, le code n'est pas grillé
+                        return;
                     }
 
-                    const lienScript = dataProd[0].lien_telechargement;
-                    const lienNotice = dataProd[0].lien_notice;
+                    const prod = dataProd[0];
 
-                    // 5. Mise à jour de la table 'codes' : on verrouille le code de manière définitive
+                    // CAS 2 : Le produit existe mais ses liens sont NULL ou vides
+                    if (!prod.lien_telechargement) {
+                        msg.style.display = "block";
+                        msg.style.color = "#ffcc00";
+                        msg.style.borderColor = "#ffcc00";
+                        msg.innerHTML = `ERREUR DIAGNOSTIC : Le produit "${prod.nom_produit}" (ID: ${idProduit}) existe bien, mais sa colonne 'lien_telechargement' est vide (NULL) dans ta base de données.`;
+                        btn.disabled = false;
+                        btn.innerText = "VALIDER LE CODE";
+                        return;
+                    }
+
+                    const lienScript = prod.lien_telechargement;
+                    const lienNotice = prod.lien_notice || "#";
+
+                    // 3. Verrouillage du code uniquement si tout est OK
                     await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${idCode}`, {
                         method: 'PATCH',
                         headers: { 
@@ -215,7 +218,7 @@
                         body: JSON.stringify({ est_utilise: true })
                     });
 
-                    // 6. Succès total : affichage des vrais boutons qui pointent vers tes fichiers
+                    // 4. Affichage des boutons fonctionnels
                     msg.style.display = "block";
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
