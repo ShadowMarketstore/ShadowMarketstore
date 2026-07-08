@@ -167,7 +167,7 @@
                         msg.style.display = "block";
                         msg.style.color = "#ffcc00";
                         msg.style.borderColor = "#ffcc00";
-                        msg.innerHTML = `ERREUR DIAGNOSTIC : Ce code en base de données n'est rattaché à aucun ID de produit (la colonne produit_id est vide).`;
+                        msg.innerHTML = `ERREUR : Ce code n'est rattaché à aucun ID de produit.`;
                         btn.disabled = false;
                         btn.innerText = "VALIDER LE CODE";
                         return;
@@ -179,12 +179,11 @@
                     });
                     const dataProd = await resProd.json();
                     
-                    // CAS 1 : Le produit ID 53 n'existe pas du tout dans la table produits
                     if (dataProd.length === 0) {
                         msg.style.display = "block";
                         msg.style.color = "#ffcc00";
                         msg.style.borderColor = "#ffcc00";
-                        msg.innerHTML = `ERREUR DIAGNOSTIC : Le code demande le produit ID "${idProduit}", mais cet ID n'existe pas dans ta table 'produits'.`;
+                        msg.innerHTML = `ERREUR : Le produit ID "${idProduit}" n'existe pas.`;
                         btn.disabled = false;
                         btn.innerText = "VALIDER LE CODE";
                         return;
@@ -192,21 +191,29 @@
 
                     const prod = dataProd[0];
 
-                    // CAS 2 : Le produit existe mais ses liens sont NULL ou vides
                     if (!prod.lien_telechargement) {
                         msg.style.display = "block";
                         msg.style.color = "#ffcc00";
                         msg.style.borderColor = "#ffcc00";
-                        msg.innerHTML = `ERREUR DIAGNOSTIC : Le produit "${prod.nom_produit}" (ID: ${idProduit}) existe bien, mais sa colonne 'lien_telechargement' est vide (NULL) dans ta base de données.`;
+                        msg.innerHTML = `ERREUR : Le lien de téléchargement est vide.`;
                         btn.disabled = false;
                         btn.innerText = "VALIDER LE CODE";
                         return;
                     }
 
-                    const lienScript = prod.lien_telechargement;
-                    const lienNotice = prod.lien_notice || "#";
+                    // --- ENCODAGE SÉCURISÉ ET RESTRUCTURATION DES LIENS ---
+                    // encodeURI traduit proprement les espaces et caractères spéciaux pour le navigateur
+                    const lienScript = encodeURI(prod.lien_telechargement.trim());
+                    
+                    let lienNotice = "";
+                    if (prod.lien_notice && prod.lien_notice.trim() !== "") {
+                        lienNotice = encodeURI(prod.lien_notice.trim());
+                    } else {
+                        // Génération automatique si la colonne en base de données est vide
+                        lienNotice = encodeURI(`${SUPA_URL}/storage/v1/object/public/coffre_fort/${prod.nom_produit.trim()}/NOTICE.txt.zip`);
+                    }
 
-                    // 3. Verrouillage du code uniquement si tout est OK
+                    // 3. Verrouillage du code uniquement si tout s'est bien passé
                     await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${idCode}`, {
                         method: 'PATCH',
                         headers: { 
