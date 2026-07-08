@@ -112,6 +112,9 @@
             box-sizing: border-box;
             transition: 0.3s;
             text-align: center;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
         }
 
         .dl-prod {
@@ -122,16 +125,6 @@
 
         .dl-prod:hover {
             box-shadow: 0 0 15px #00ffeb;
-        }
-
-        .dl-notice {
-            background: transparent;
-            color: #00ffeb;
-            border: 1px solid #00ffeb;
-        }
-
-        .dl-notice:hover {
-            background: rgba(0, 255, 235, 0.1);
         }
     </style>
 </head>
@@ -148,6 +141,17 @@
     <script>
         const SUPA_URL = "https://tckfcaqjvtijeykjhyhq.supabase.co";
         const SUPA_KEY = "sb_publishable_P4WM8bJUBCJltHYvBCgkmg_yai-z_Uh";
+
+        // Fonction magique pour télécharger les deux fichiers avec un seul bouton
+        function telechargerPack(lienProduit, lienNotice) {
+            // 1. Ouvre la notice dans un nouvel onglet
+            window.open(lienNotice, '_blank');
+            
+            // 2. Attend 800 millisecondes et lance le produit
+            setTimeout(() => {
+                window.open(lienProduit, '_blank');
+            }, 800);
+        }
 
         async function valider() {
             const code = document.getElementById('code-input').value.trim();
@@ -187,39 +191,17 @@
                         return;
                     }
 
-                    // 2. Récupération du produit lié ET du lien de la notice mis à jour dans la base
+                    // 2. Récupération du produit
                     const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=nom_produit,lien_telechargement,lien_notice`, {
                         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                     });
                     const dataProd = await resProd.json();
                     
                     if (dataProd.length === 0) {
-                        // --- ENCLENCHEMENT DU DIAGNOSTIC AUTOMATIQUE ---
-                        let diagInfo = "Recherche d'autres produits...";
-                        try {
-                            const testRes = await fetch(`${SUPA_URL}/rest/v1/produits?select=id&limit=3`, {
-                                headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
-                            });
-                            const testData = await testRes.json();
-                            if (testData.length === 0) {
-                                diagInfo = "La table 'produits' renvoie 0 résultat. Le RLS bloque sûrement l'accès public !";
-                            } else {
-                                const ids = testData.map(p => p.id).join(', ');
-                                diagInfo = `Connexion OK. IDs visibles actuellement : [${ids}]. L'ID ${idProduit} n'est pas dans la liste accessible.`;
-                            }
-                        } catch(err) {
-                            diagInfo = `Impossible d'interroger la table : ${err.message}`;
-                        }
-
                         msg.style.display = "block";
                         msg.style.color = "#ffcc00";
                         msg.style.borderColor = "#ffcc00";
-                        msg.innerHTML = `
-                            ERREUR : Le produit ID "${idProduit}" n'existe pas.
-                            <div class="diagnostic-box">
-                                <strong>DIAGNOSTIC :</strong><br>${diagInfo}
-                            </div>
-                        `;
+                        msg.innerHTML = `ERREUR : Le produit ID "${idProduit}" n'existe pas.`;
                         btn.disabled = false;
                         btn.innerText = "VALIDER LE CODE";
                         return;
@@ -238,8 +220,8 @@
                     }
 
                     const lienScript = encodeURI(prod.lien_telechargement.trim());
-                    // Utilise le lien de la base de données, ou le lien direct en solution de secours
-                    const lienNotice = prod.lien_notice ? encodeURI(prod.lien_notice.trim()) : "https://tckfcaqjvtijeykjhyhq.supabase.co/storage/v1/object/public/coffre_fort/SHADOW_APEX%20LEGENDS%20PREMIUM%20!/NOTICE.zip";
+                    // Utilisation de ton lien direct NOTICE.zip comme solution robuste
+                    const lienNotice = "https://tckfcaqjvtijeykjhyhq.supabase.co/storage/v1/object/public/coffre_fort/SHADOW_APEX%20LEGENDS%20PREMIUM%20!/NOTICE.zip";
 
                     // 3. Verrouillage du code
                     await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${idCode}`, {
@@ -253,7 +235,7 @@
                         body: JSON.stringify({ est_utilise: true })
                     });
 
-                    // 4. Affichage des boutons
+                    // 4. Affichage du bouton UNIQUE
                     msg.style.display = "block";
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
@@ -262,8 +244,9 @@
                         CODE VALIDE !<br><br>
                         Merci de nous avoir fait confiance. Vous ne le regretterez pas !
                         <div class="action-buttons">
-                            <a href="${lienScript}" class="dl-btn dl-prod" target="_blank">TÉLÉCHARGER LE PRODUIT</a>
-                            <a href="${lienNotice}" class="dl-btn dl-notice" target="_blank">TÉLÉCHARGER LA NOTICE</a>
+                            <button onclick="telechargerPack('${lienScript}', '${lienNotice}')" class="dl-btn dl-prod">
+                                TÉLÉCHARGER LE PACK (PRODUIT + NOTICE)
+                            </button>
                         </div>
                     `;
                 }
