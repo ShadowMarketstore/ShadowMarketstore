@@ -187,8 +187,8 @@
                         return;
                     }
 
-                    // 2. Récupération du produit lié
-                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=nom_produit,lien_telechargement`, {
+                    // 2. Récupération du produit lié ET du lien de la notice mis à jour dans la base
+                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=nom_produit,lien_telechargement,lien_notice`, {
                         headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                     });
                     const dataProd = await resProd.json();
@@ -197,7 +197,6 @@
                         // --- ENCLENCHEMENT DU DIAGNOSTIC AUTOMATIQUE ---
                         let diagInfo = "Recherche d'autres produits...";
                         try {
-                            // On tente de lire les 3 premiers produits pour voir si la table répond
                             const testRes = await fetch(`${SUPA_URL}/rest/v1/produits?select=id&limit=3`, {
                                 headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                             });
@@ -239,7 +238,8 @@
                     }
 
                     const lienScript = encodeURI(prod.lien_telechargement.trim());
-                    const lienNotice = `${SUPA_URL}/storage/v1/object/public/coffre_fort/NOTICE.txt.zip`;
+                    // Utilise le lien de la base de données, ou le lien direct en solution de secours
+                    const lienNotice = prod.lien_notice ? encodeURI(prod.lien_notice.trim()) : "https://tckfcaqjvtijeykjhyhq.supabase.co/storage/v1/object/public/coffre_fort/SHADOW_APEX%20LEGENDS%20PREMIUM%20!/NOTICE.zip";
 
                     // 3. Verrouillage du code
                     await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${idCode}`, {
