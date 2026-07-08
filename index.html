@@ -79,6 +79,47 @@
             font-size: 14px;
             border: 1px solid currentColor;
         }
+
+        /* --- NOUVEAUX STYLES POUR LES BOUTONS DE TÉLÉCHARGEMENT --- */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .dl-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        .dl-prod {
+            background: #00ffeb;
+            color: #000000;
+            box-shadow: 0 0 10px rgba(0, 255, 235, 0.3);
+        }
+
+        .dl-prod:hover {
+            box-shadow: 0 0 15px #00ffeb;
+        }
+
+        .dl-notice {
+            background: transparent;
+            color: #00ffeb;
+            border: 1px solid #00ffeb;
+        }
+
+        .dl-notice:hover {
+            background: rgba(0, 255, 235, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -106,21 +147,34 @@
             btn.innerText = "VÉRIFICATION...";
             
             try {
-                // 1. Appel direct à la table 'codes' pour vérification
-                const res = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=id,lien,est_utilise`, {
+                // 1. Appel à la table 'codes' pour récupérer l'état et l'ID du produit lié
+                const resCode = await fetch(`${SUPA_URL}/rest/v1/codes?code_unique=eq.${encodeURIComponent(code)}&select=id,produit_id,est_utilise`, {
                     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
                 });
-                const data = await res.json();
+                const dataCode = await resCode.json();
 
-                // 2. Vérification : existe-t-il ? a-t-il déjà été utilisé ?
-                if (data.length === 0 || data[0].est_utilise === true) {
+                // 2. Vérification : le code existe-t-il et est-il inutilisé ?
+                if (dataCode.length === 0 || dataCode[0].est_utilise === true) {
                     msg.style.display = "block";
                     msg.style.color = "#ff4d4d";
                     msg.style.borderColor = "#ff4d4d";
                     msg.innerHTML = "CODE INVALIDE OU DÉJÀ UTILISÉ.";
                 } else {
-                    // 3. Mise à jour de la table 'codes' : on verrouille le code (true)
-                    await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${data[0].id}`, {
+                    const idCode = dataCode[0].id;
+                    const idProduit = dataCode[0].produit_id;
+
+                    // 3. Appel à la table 'produits' pour récupérer les deux liens
+                    const resProd = await fetch(`${SUPA_URL}/rest/v1/produits?id=eq.${idProduit}&select=lien_telechargement,lien_notice`, {
+                        headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+                    });
+                    const dataProd = await resProd.json();
+                    
+                    // Sécurité au cas où un lien serait vide
+                    const lienScript = (dataProd.length > 0 && dataProd[0].lien_telechargement) ? dataProd[0].lien_telechargement : "#";
+                    const lienNotice = (dataProd.length > 0 && dataProd[0].lien_notice) ? dataProd[0].lien_notice : "#";
+
+                    // 4. Mise à jour de la table 'codes' : on verrouille le code (true)
+                    await fetch(`${SUPA_URL}/rest/v1/codes?id=eq.${idCode}`, {
                         method: 'PATCH',
                         headers: { 
                             'apikey': SUPA_KEY, 
@@ -131,15 +185,23 @@
                         body: JSON.stringify({ est_utilise: true })
                     });
 
-                    // 4. Succès : affichage du lien
+                    // 5. Succès : affichage des deux boutons de téléchargement
                     msg.style.display = "block";
                     msg.style.color = "#00ffeb";
                     msg.style.borderColor = "#00ffeb";
-                    msg.innerHTML = `CODE VALIDE !<br><br>Merci de nous avoir fait confiance. Vous ne le regretterez pas !<br><br><a href="${data[0].lien}" style="color:white; font-weight:bold; text-decoration:underline;">TÉLÉCHARGER LE PRODUIT</a>`;
+                    msg.innerHTML = `
+                        CODE VALIDE !<br><br>
+                        Merci de nous avoir fait confiance. Vous ne le regretterez pas !
+                        <div class="action-buttons">
+                            <a href="${lienScript}" class="dl-btn dl-prod" target="_blank">TÉLÉCHARGER LE PRODUIT</a>
+                            <a href="${lienNotice}" class="dl-btn dl-notice" target="_blank">TÉLÉCHARGER LA NOTICE</a>
+                        </div>
+                    `;
                 }
             } catch (e) {
                 msg.style.display = "block";
                 msg.style.color = "#ff4d4d";
+                msg.style.borderColor = "#ff4d4d";
                 msg.innerHTML = "ERREUR DE CONNEXION.";
             }
             btn.disabled = false;
